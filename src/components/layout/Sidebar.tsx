@@ -8,7 +8,10 @@ import {
   Grid3X3,
   ChevronLeft,
   ChevronRight,
-  Zap
+  Zap,
+  Link2,
+  UserCheck,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -20,7 +23,10 @@ const navigation = [
   { name: 'Skills', href: '/skills', icon: Layers },
   { name: 'Profiles', href: '/profiles', icon: Users },
   { name: 'Grades', href: '/grades', icon: Award },
+  { name: 'Mappings', href: '/mappings', icon: Link2 },
+  { name: 'Employee Grades', href: '/employee-grades', icon: UserCheck },
   { name: 'Skill Matrix', href: '/matrix', icon: Grid3X3 },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
 ];
 
 export function Sidebar() {

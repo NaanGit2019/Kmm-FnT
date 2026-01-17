@@ -2,10 +2,11 @@ import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
 
-interface StatCardProps {
+export interface StatCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
+  description?: string;
   trend?: {
     value: number;
     label: string;
@@ -13,7 +14,7 @@ interface StatCardProps {
   className?: string;
 }
 
-export function StatCard({ title, value, icon: Icon, trend, className }: StatCardProps) {
+export function StatCard({ title, value, icon: Icon, description, trend, className }: StatCardProps) {
   return (
     <div className={cn(
       "bg-card rounded-xl p-6 border border-border card-hover",
@@ -23,6 +24,9 @@ export function StatCard({ title, value, icon: Icon, trend, className }: StatCar
         <div>
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
           <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
+          {description && (
+            <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+          )}
           {trend && (
             <p className={cn(
               "mt-2 text-sm font-medium",

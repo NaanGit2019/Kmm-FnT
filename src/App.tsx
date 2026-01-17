@@ -10,6 +10,9 @@ import Skills from "./pages/Skills";
 import Profiles from "./pages/Profiles";
 import Grades from "./pages/Grades";
 import SkillMatrix from "./pages/SkillMatrix";
+import Mappings from "./pages/Mappings";
+import EmployeeGrades from "./pages/EmployeeGrades";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,7 +30,10 @@ const App = () => (
             <Route path="/skills" element={<Skills />} />
             <Route path="/profiles" element={<Profiles />} />
             <Route path="/grades" element={<Grades />} />
+            <Route path="/mappings" element={<Mappings />} />
+            <Route path="/employee-grades" element={<EmployeeGrades />} />
             <Route path="/matrix" element={<SkillMatrix />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>
