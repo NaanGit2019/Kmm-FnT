@@ -3,29 +3,80 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:50
 
 export const API_ENDPOINTS = {
   // Grades
-  grades: `${API_BASE_URL}/grades`,
-  gradeById: (id: number) => `${API_BASE_URL}/grades/${id}`,
+  grades: {
+    getAll: `${API_BASE_URL}/Grade/GetAllGrade`,
+    getById: (id: number) => `${API_BASE_URL}/Grade/GetGradebyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Grade/insertupadateGrade`,
+    delete: (id: number) => `${API_BASE_URL}/Grade/deleteGrade/${id}`,
+  },
   
   // Profiles
-  profiles: `${API_BASE_URL}/profiles`,
-  profileById: (id: number) => `${API_BASE_URL}/profiles/${id}`,
+  profiles: {
+    getAll: `${API_BASE_URL}/Profile/GetAllProfile`,
+    getById: (id: number) => `${API_BASE_URL}/Profile/GetProfilebyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Profile/insertupadateProfile`,
+    delete: (id: number) => `${API_BASE_URL}/Profile/deleteProfile/${id}`,
+  },
   
   // Technologies
-  technologies: `${API_BASE_URL}/technologies`,
-  technologyById: (id: number) => `${API_BASE_URL}/technologies/${id}`,
+  technologies: {
+    getAll: `${API_BASE_URL}/Technology/GetAllTechnology`,
+    getById: (id: number) => `${API_BASE_URL}/Technology/GetTechnologybyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Technology/insertupadateTechnology`,
+    delete: (id: number) => `${API_BASE_URL}/Technology/deleteTechnology/${id}`,
+  },
   
   // Skills
-  skills: `${API_BASE_URL}/skills`,
-  skillById: (id: number) => `${API_BASE_URL}/skills/${id}`,
+  skills: {
+    getAll: `${API_BASE_URL}/Skill/GetAllSkill`,
+    getById: (id: number) => `${API_BASE_URL}/Skill/GetSkillbyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Skill/insertupadateSkill`,
+    delete: (id: number) => `${API_BASE_URL}/Skill/deleteSkill/${id}`,
+  },
   
   // Subskills
-  subskills: `${API_BASE_URL}/subskills`,
-  subskillById: (id: number) => `${API_BASE_URL}/subskills/${id}`,
-  subskillsBySkill: (skillId: number) => `${API_BASE_URL}/skills/${skillId}/subskills`,
+  subskills: {
+    getAll: `${API_BASE_URL}/Subskill/GetAllSubskill`,
+    getById: (id: number) => `${API_BASE_URL}/Subskill/GetSubskillbyId/${id}`,
+    getBySkill: (skillId: number) => `${API_BASE_URL}/Subskill/GetSubskillsBySkillId/${skillId}`,
+    insertUpdate: `${API_BASE_URL}/Subskill/insertupadateSubskill`,
+    delete: (id: number) => `${API_BASE_URL}/Subskill/deleteSubskill/${id}`,
+  },
   
-  // Mappings
-  skillMaps: `${API_BASE_URL}/skillmaps`,
-  technologySkills: `${API_BASE_URL}/technologyskills`,
-  technologyProfiles: `${API_BASE_URL}/technologyprofiles`,
-  profileUsers: `${API_BASE_URL}/profileusers`,
+  // Users
+  users: {
+    getAll: `${API_BASE_URL}/User/GetAllUser`,
+    getById: (id: number) => `${API_BASE_URL}/User/GetUserbyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/User/insertupadateUser`,
+    delete: (id: number) => `${API_BASE_URL}/User/deleteUser/${id}`,
+  },
+  
+  // Skill Maps
+  skillMaps: {
+    getAll: `${API_BASE_URL}/SkillMap/GetAllSkillMap`,
+    getByUser: (userId: number) => `${API_BASE_URL}/SkillMap/GetSkillMapsByUserId/${userId}`,
+    insertUpdate: `${API_BASE_URL}/SkillMap/insertupadateSkillMap`,
+    delete: (id: number) => `${API_BASE_URL}/SkillMap/deleteSkillMap/${id}`,
+  },
+  
+  // Technology-Skill Mappings
+  technologySkills: {
+    getAll: `${API_BASE_URL}/TechnologySkill/GetAllTechnologySkill`,
+    insertUpdate: `${API_BASE_URL}/TechnologySkill/insertupadateTechnologySkill`,
+    delete: (id: number) => `${API_BASE_URL}/TechnologySkill/deleteTechnologySkill/${id}`,
+  },
+  
+  // Technology-Profile Mappings
+  technologyProfiles: {
+    getAll: `${API_BASE_URL}/TechnologyProfile/GetAllTechnologyProfile`,
+    insertUpdate: `${API_BASE_URL}/TechnologyProfile/insertupadateTechnologyProfile`,
+    delete: (id: number) => `${API_BASE_URL}/TechnologyProfile/deleteTechnologyProfile/${id}`,
+  },
+  
+  // Profile-User Mappings
+  profileUsers: {
+    getAll: `${API_BASE_URL}/ProfileUser/GetAllProfileUser`,
+    insertUpdate: `${API_BASE_URL}/ProfileUser/insertupadateProfileUser`,
+    delete: (id: number) => `${API_BASE_URL}/ProfileUser/deleteProfileUser/${id}`,
+  },
 };

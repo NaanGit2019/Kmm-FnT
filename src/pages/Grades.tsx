@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
-import { mockGrades } from '@/data/mockData';
+import { useGrades, useGradeMutation } from '@/hooks/useApi';
 import type { Grade } from '@/types';
 import {
   Dialog,
@@ -16,10 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 export default function Grades() {
-  const [grades, setGrades] = useState<Grade[]>(mockGrades);
+  const { data: grades = [], isLoading, error } = useGrades();
+  const { insertUpdate, deleteMutation } = useGradeMutation();
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
@@ -82,41 +85,43 @@ export default function Grades() {
     setDeleteDialogOpen(true);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.title || !formData.gradelevel) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    if (editingGrade) {
-      setGrades(prev => 
-        prev.map(g => g.id === editingGrade.id 
-          ? { ...g, ...formData, updatedAt: new Date().toISOString() }
-          : g
-        )
-      );
-      toast.success('Grade updated successfully');
-    } else {
-      const newGrade: Grade = {
-        id: Math.max(...grades.map(g => g.id)) + 1,
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-      setGrades(prev => [...prev, newGrade]);
-      toast.success('Grade created successfully');
-    }
-    
-    setDialogOpen(false);
+    const gradeData: Grade = {
+      id: editingGrade?.id || 0,
+      ...formData,
+    };
+
+    insertUpdate.mutate(gradeData, {
+      onSuccess: () => {
+        setDialogOpen(false);
+      },
+    });
   };
 
   const confirmDelete = () => {
     if (deletingGrade) {
-      setGrades(prev => prev.filter(g => g.id !== deletingGrade.id));
-      toast.success('Grade deleted successfully');
-      setDeleteDialogOpen(false);
-      setDeletingGrade(null);
+      deleteMutation.mutate(deletingGrade.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setDeletingGrade(null);
+        },
+      });
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6">
+        <Header title="Grades" subtitle="Manage employee grade levels" />
+        <div className="text-destructive">Error loading grades: {error.message}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -126,15 +131,22 @@ export default function Grades() {
       />
       
       <div className="p-6">
-        <DataTable
-          data={grades}
-          columns={columns}
-          searchKey="title"
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          addLabel="Add Grade"
-        />
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        ) : (
+          <DataTable
+            data={grades}
+            columns={columns}
+            searchKey="title"
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            addLabel="Add Grade"
+          />
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
@@ -186,8 +198,8 @@ export default function Grades() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
-              {editingGrade ? 'Update' : 'Create'}
+            <Button onClick={handleSubmit} disabled={insertUpdate.isPending}>
+              {insertUpdate.isPending ? 'Saving...' : (editingGrade ? 'Update' : 'Create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -206,8 +218,8 @@ export default function Grades() {
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -6,24 +6,43 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { Users, Award, TrendingUp, BarChart3, Target, Layers } from 'lucide-react';
-import { mockGrades, mockSkills, mockSubskills, mockProfiles } from '@/data/mockData';
-import { mockUsers, mockSkillMapsExtended, mockProfileUsers } from '@/data/mockUsers';
+import { 
+  useGrades, 
+  useSkills, 
+  useSubskills, 
+  useProfiles,
+  useUsers,
+  useSkillMaps,
+  useProfileUsers
+} from '@/hooks/useApi';
 
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
 
 export default function Analytics() {
+  const { data: grades = [], isLoading: gradesLoading } = useGrades();
+  const { data: skills = [], isLoading: skillsLoading } = useSkills();
+  const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
+  const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
+  const { data: users = [], isLoading: usersLoading } = useUsers();
+  const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
+  const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
+
+  const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading || 
+                    usersLoading || skillMapsLoading || profileUsersLoading;
+
   // Calculate user skill summaries
   const userSummaries = useMemo(() => {
-    return mockUsers.filter(u => u.isactive).map(user => {
-      const userSkills = mockSkillMapsExtended.filter(sm => sm.userId === user.id);
-      const userProfile = mockProfileUsers.find(pu => pu.userId === user.id);
-      const profile = userProfile ? mockProfiles.find(p => p.id === userProfile.profileId) : null;
+    return users.filter(u => u.isactive).map(user => {
+      const userSkills = skillMaps.filter(sm => sm.userId === user.id);
+      const userProfile = profileUsers.find(pu => pu.userId === user.id);
+      const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
       
       const totalGrade = userSkills.reduce((acc, sm) => acc + (sm.gradeid || 0), 0);
       const avgGrade = userSkills.length > 0 ? totalGrade / userSkills.length : 0;
@@ -31,7 +50,7 @@ export default function Analytics() {
       // Get top skills (highest grades)
       const topSkillMaps = [...userSkills].sort((a, b) => (b.gradeid || 0) - (a.gradeid || 0)).slice(0, 3);
       const topSkills = topSkillMaps.map(sm => {
-        const subskill = mockSubskills.find(ss => ss.id === sm.subskillId);
+        const subskill = subskills.find(ss => ss.id === sm.subskillId);
         return subskill?.title || '';
       });
 
@@ -43,52 +62,52 @@ export default function Analytics() {
         topSkills
       };
     });
-  }, []);
+  }, [users, skillMaps, profileUsers, profiles, subskills]);
 
   // Grade distribution across all users
   const gradeDistribution = useMemo(() => {
     const distribution: Record<number, number> = {};
-    mockSkillMapsExtended.forEach(sm => {
+    skillMaps.forEach(sm => {
       if (sm.gradeid) {
         distribution[sm.gradeid] = (distribution[sm.gradeid] || 0) + 1;
       }
     });
     
-    return mockGrades.filter(g => g.isactive).map(grade => ({
+    return grades.filter(g => g.isactive).map(grade => ({
       name: `${grade.gradelevel} - ${grade.title}`,
       value: distribution[grade.id] || 0,
       level: grade.gradelevel
     }));
-  }, []);
+  }, [skillMaps, grades]);
 
   // Skills coverage by skill category
   const skillCoverage = useMemo(() => {
-    return mockSkills.filter(s => s.isactive).map(skill => {
-      const subskills = mockSubskills.filter(ss => ss.skillId === skill.id);
-      const subskillIds = subskills.map(ss => ss.id);
-      const gradedCount = mockSkillMapsExtended.filter(sm => 
+    return skills.filter(s => s.isactive).map(skill => {
+      const skillSubskills = subskills.filter(ss => ss.skillId === skill.id);
+      const subskillIds = skillSubskills.map(ss => ss.id);
+      const gradedCount = skillMaps.filter(sm => 
         subskillIds.includes(sm.subskillId)
       ).length;
       const uniqueUsers = new Set(
-        mockSkillMapsExtended.filter(sm => subskillIds.includes(sm.subskillId)).map(sm => sm.userId)
+        skillMaps.filter(sm => subskillIds.includes(sm.subskillId)).map(sm => sm.userId)
       ).size;
       
       return {
         skill: skill.title || '',
-        subskillCount: subskills.length,
+        subskillCount: skillSubskills.length,
         gradedCount,
         uniqueUsers,
-        coverage: (uniqueUsers / mockUsers.filter(u => u.isactive).length) * 100
+        coverage: (uniqueUsers / Math.max(users.filter(u => u.isactive).length, 1)) * 100
       };
     });
-  }, []);
+  }, [skills, subskills, skillMaps, users]);
 
   // Radar chart data for team skill distribution
   const teamSkillRadar = useMemo(() => {
-    return mockSkills.filter(s => s.isactive).map(skill => {
-      const subskills = mockSubskills.filter(ss => ss.skillId === skill.id);
-      const subskillIds = subskills.map(ss => ss.id);
-      const relevantMaps = mockSkillMapsExtended.filter(sm => subskillIds.includes(sm.subskillId));
+    return skills.filter(s => s.isactive).map(skill => {
+      const skillSubskills = subskills.filter(ss => ss.skillId === skill.id);
+      const subskillIds = skillSubskills.map(ss => ss.id);
+      const relevantMaps = skillMaps.filter(sm => subskillIds.includes(sm.subskillId));
       const avgGrade = relevantMaps.length > 0 
         ? relevantMaps.reduce((acc, sm) => acc + (sm.gradeid || 0), 0) / relevantMaps.length 
         : 0;
@@ -100,40 +119,58 @@ export default function Analytics() {
         maxGrade: 5
       };
     });
-  }, []);
+  }, [skills, subskills, skillMaps]);
 
   // Profile distribution
   const profileDistribution = useMemo(() => {
     const distribution: Record<number, number> = {};
-    mockProfileUsers.forEach(pu => {
+    profileUsers.forEach(pu => {
       distribution[pu.profileId] = (distribution[pu.profileId] || 0) + 1;
     });
     
-    return mockProfiles.filter(p => p.isactive).map(profile => ({
+    return profiles.filter(p => p.isactive).map(profile => ({
       name: profile.title || '',
       value: distribution[profile.id] || 0
     })).filter(p => p.value > 0);
-  }, []);
+  }, [profileUsers, profiles]);
 
   // Stats
   const stats = useMemo(() => {
-    const totalGradedSkills = mockSkillMapsExtended.length;
+    const totalGradedSkills = skillMaps.length;
     const avgGradeAll = totalGradedSkills > 0 
-      ? mockSkillMapsExtended.reduce((acc, sm) => acc + (sm.gradeid || 0), 0) / totalGradedSkills 
+      ? skillMaps.reduce((acc, sm) => acc + (sm.gradeid || 0), 0) / totalGradedSkills 
       : 0;
-    const seniorAndAbove = mockSkillMapsExtended.filter(sm => (sm.gradeid || 0) >= 3).length;
+    const seniorAndAbove = skillMaps.filter(sm => (sm.gradeid || 0) >= 3).length;
 
     return {
-      totalEmployees: mockUsers.filter(u => u.isactive).length,
+      totalEmployees: users.filter(u => u.isactive).length,
       totalGradedSkills,
       avgGrade: avgGradeAll.toFixed(1),
-      seniorPercentage: ((seniorAndAbove / totalGradedSkills) * 100).toFixed(0)
+      seniorPercentage: totalGradedSkills > 0 ? ((seniorAndAbove / totalGradedSkills) * 100).toFixed(0) : '0'
     };
-  }, []);
+  }, [skillMaps, users]);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <Header title="Skills Analytics" subtitle="Comprehensive analysis of employee skills and competency levels" />
+        <div className="grid gap-4 md:grid-cols-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-80" />
+          <Skeleton className="h-80" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

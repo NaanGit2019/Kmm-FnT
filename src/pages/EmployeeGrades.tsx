@@ -7,10 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Save, User, Award, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
-import { mockGrades, mockSkills, mockSubskills, mockProfiles } from '@/data/mockData';
-import { mockUsers, mockSkillMapsExtended, mockProfileUsers } from '@/data/mockUsers';
+import { 
+  useGrades, 
+  useSkills, 
+  useSubskills, 
+  useProfiles,
+  useUsers,
+  useSkillMaps,
+  useProfileUsers,
+  useSkillMapMutation
+} from '@/hooks/useApi';
 import type { MapSkillmap } from '@/types';
 
 const gradeColors: Record<string, string> = {
@@ -22,13 +31,25 @@ const gradeColors: Record<string, string> = {
 };
 
 export default function EmployeeGrades() {
-  const [selectedUserId, setSelectedUserId] = useState<number>(1);
-  const [skillMaps, setSkillMaps] = useState<MapSkillmap[]>(mockSkillMapsExtended);
+  const { data: grades = [], isLoading: gradesLoading } = useGrades();
+  const { data: skills = [], isLoading: skillsLoading } = useSkills();
+  const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
+  const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
+  const { data: users = [], isLoading: usersLoading } = useUsers();
+  const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
+  const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
+  const { insertUpdate } = useSkillMapMutation();
+
+  const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading || 
+                    usersLoading || skillMapsLoading || profileUsersLoading;
+
+  const [selectedUserId, setSelectedUserId] = useState<number>(0);
+  const [pendingChanges, setPendingChanges] = useState<Map<number, number>>(new Map());
   const [hasChanges, setHasChanges] = useState(false);
 
-  const selectedUser = mockUsers.find(u => u.id === selectedUserId);
-  const userProfile = mockProfileUsers.find(pu => pu.userId === selectedUserId);
-  const profile = userProfile ? mockProfiles.find(p => p.id === userProfile.profileId) : null;
+  const selectedUser = users.find(u => u.id === selectedUserId);
+  const userProfile = profileUsers.find(pu => pu.userId === selectedUserId);
+  const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
 
   const userSkillMaps = useMemo(() => 
     skillMaps.filter(sm => sm.userId === selectedUserId),
@@ -36,67 +57,95 @@ export default function EmployeeGrades() {
   );
 
   const skillsWithSubskills = useMemo(() => 
-    mockSkills.filter(s => s.isactive).map(skill => ({
+    skills.filter(s => s.isactive).map(skill => ({
       ...skill,
-      subskills: mockSubskills.filter(ss => ss.skillId === skill.id && ss.isactive)
+      subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
     })),
-    []
+    [skills, subskills]
   );
 
   const getGradeForSubskill = (subskillId: number) => {
+    // Check pending changes first
+    if (pendingChanges.has(subskillId)) {
+      return pendingChanges.get(subskillId) || 0;
+    }
     const mapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
     return mapping?.gradeid || 0;
   };
 
   const handleGradeChange = (subskillId: number, gradeId: number) => {
     setHasChanges(true);
-    const existingIndex = skillMaps.findIndex(
-      sm => sm.subskillId === subskillId && sm.userId === selectedUserId
-    );
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(subskillId, gradeId);
+    setPendingChanges(newPendingChanges);
+  };
 
-    if (existingIndex >= 0) {
-      if (gradeId === 0) {
-        // Remove the mapping
-        setSkillMaps(skillMaps.filter((_, i) => i !== existingIndex));
-      } else {
-        // Update existing
-        const updated = [...skillMaps];
-        updated[existingIndex] = { ...updated[existingIndex], gradeid: gradeId };
-        setSkillMaps(updated);
-      }
-    } else if (gradeId !== 0) {
-      // Add new mapping
-      setSkillMaps([...skillMaps, {
-        id: Math.max(...skillMaps.map(sm => sm.id)) + 1,
+  const handleSave = async () => {
+    const promises: Promise<void>[] = [];
+    
+    pendingChanges.forEach((gradeId, subskillId) => {
+      const existingMapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
+      
+      const data: MapSkillmap = {
+        id: existingMapping?.id || 0,
         subskillId,
         userId: selectedUserId,
         gradeid: gradeId,
         isactive: true
-      }]);
-    }
-  };
+      };
+      
+      promises.push(
+        new Promise((resolve, reject) => {
+          insertUpdate.mutate(data, {
+            onSuccess: () => resolve(),
+            onError: (error) => reject(error)
+          });
+        })
+      );
+    });
 
-  const handleSave = () => {
-    // Here you would call the API to save changes
-    toast.success('Employee grades saved successfully!');
-    setHasChanges(false);
+    try {
+      await Promise.all(promises);
+      toast.success('Employee grades saved successfully!');
+      setHasChanges(false);
+      setPendingChanges(new Map());
+    } catch (error) {
+      toast.error('Failed to save some grades');
+    }
   };
 
   const calculateProgress = () => {
     const totalSubskills = skillsWithSubskills.reduce((acc, s) => acc + s.subskills.length, 0);
-    const gradedSubskills = userSkillMaps.length;
+    const gradedSubskills = userSkillMaps.length + pendingChanges.size;
     return totalSubskills > 0 ? (gradedSubskills / totalSubskills) * 100 : 0;
   };
 
   const calculateAverageGrade = () => {
-    if (userSkillMaps.length === 0) return 0;
-    const total = userSkillMaps.reduce((acc, sm) => acc + (sm.gradeid || 0), 0);
-    return (total / userSkillMaps.length).toFixed(1);
+    const allGrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
+    pendingChanges.forEach((grade) => allGrades.push(grade));
+    if (allGrades.length === 0) return 0;
+    const total = allGrades.reduce((acc, grade) => acc + grade, 0);
+    return (total / allGrades.length).toFixed(1);
   };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <Header title="Employee Grades" subtitle="Apply and manage competency grades for individual employees" />
+        <div className="grid gap-4 md:grid-cols-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -117,13 +166,14 @@ export default function EmployeeGrades() {
               onValueChange={(v) => {
                 setSelectedUserId(parseInt(v));
                 setHasChanges(false);
+                setPendingChanges(new Map());
               }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select an employee" />
               </SelectTrigger>
               <SelectContent>
-                {mockUsers.filter(u => u.isactive).map(user => (
+                {users.filter(u => u.isactive).map(user => (
                   <SelectItem key={user.id} value={user.id.toString()}>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4" />
@@ -146,7 +196,7 @@ export default function EmployeeGrades() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{userSkillMaps.length}</div>
+                <div className="text-2xl font-bold">{userSkillMaps.length + pendingChanges.size}</div>
                 <Progress value={calculateProgress()} className="mt-2 h-2" />
                 <p className="text-xs text-muted-foreground mt-1">
                   {calculateProgress().toFixed(0)}% complete
@@ -164,7 +214,7 @@ export default function EmployeeGrades() {
               <CardContent>
                 <div className="text-2xl font-bold">L{calculateAverageGrade()}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Based on {userSkillMaps.length} skills
+                  Based on {userSkillMaps.length + pendingChanges.size} skills
                 </p>
               </CardContent>
             </Card>
@@ -192,9 +242,9 @@ export default function EmployeeGrades() {
                   </div>
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={!hasChanges}>
+              <Button onClick={handleSave} disabled={!hasChanges || insertUpdate.isPending}>
                 <Save className="w-4 h-4 mr-2" />
-                Save Changes
+                {insertUpdate.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </CardHeader>
@@ -208,7 +258,7 @@ export default function EmployeeGrades() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            {mockGrades.filter(g => g.isactive).map(grade => (
+            {grades.filter(g => g.isactive).map(grade => (
               <div key={grade.id} className="flex items-center gap-2">
                 <div className={`w-4 h-4 rounded ${gradeColors[grade.gradelevel || '']}`} />
                 <span className="text-sm font-medium">{grade.gradelevel}</span>
@@ -242,7 +292,7 @@ export default function EmployeeGrades() {
                   <TableBody>
                     {skill.subskills.map(subskill => {
                       const currentGradeId = getGradeForSubskill(subskill.id);
-                      const currentGrade = mockGrades.find(g => g.id === currentGradeId);
+                      const currentGrade = grades.find(g => g.id === currentGradeId);
                       return (
                         <TableRow key={subskill.id}>
                           <TableCell className="font-medium">{subskill.title}</TableCell>
@@ -265,7 +315,7 @@ export default function EmployeeGrades() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="0">Not graded</SelectItem>
-                                {mockGrades.filter(g => g.isactive).map(grade => (
+                                {grades.filter(g => g.isactive).map(grade => (
                                   <SelectItem key={grade.id} value={grade.id.toString()}>
                                     {grade.gradelevel} - {grade.title}
                                   </SelectItem>

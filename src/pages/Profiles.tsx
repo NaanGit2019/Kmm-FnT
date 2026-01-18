@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
-import { mockProfiles } from '@/data/mockData';
+import { useProfiles, useProfileMutation } from '@/hooks/useApi';
 import type { Profile } from '@/types';
 import {
   Dialog,
@@ -15,10 +15,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 export default function Profiles() {
-  const [profiles, setProfiles] = useState<Profile[]>(mockProfiles);
+  const { data: profiles = [], isLoading, error } = useProfiles();
+  const { insertUpdate, deleteMutation } = useProfileMutation();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
@@ -76,35 +79,37 @@ export default function Profiles() {
       return;
     }
 
-    if (editingProfile) {
-      setProfiles(prev => 
-        prev.map(p => p.id === editingProfile.id 
-          ? { ...p, ...formData, updatedAt: new Date().toISOString() }
-          : p
-        )
-      );
-      toast.success('Profile updated successfully');
-    } else {
-      const newProfile: Profile = {
-        id: Math.max(...profiles.map(p => p.id)) + 1,
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-      setProfiles(prev => [...prev, newProfile]);
-      toast.success('Profile created successfully');
-    }
-    
-    setDialogOpen(false);
+    const profileData: Profile = {
+      id: editingProfile?.id || 0,
+      ...formData,
+    };
+
+    insertUpdate.mutate(profileData, {
+      onSuccess: () => {
+        setDialogOpen(false);
+      },
+    });
   };
 
   const confirmDelete = () => {
     if (deletingProfile) {
-      setProfiles(prev => prev.filter(p => p.id !== deletingProfile.id));
-      toast.success('Profile deleted successfully');
-      setDeleteDialogOpen(false);
-      setDeletingProfile(null);
+      deleteMutation.mutate(deletingProfile.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setDeletingProfile(null);
+        },
+      });
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6">
+        <Header title="Profiles" subtitle="Manage employee profiles and roles" />
+        <div className="text-destructive">Error loading profiles: {error.message}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -114,15 +119,22 @@ export default function Profiles() {
       />
       
       <div className="p-6">
-        <DataTable
-          data={profiles}
-          columns={columns}
-          searchKey="title"
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          addLabel="Add Profile"
-        />
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        ) : (
+          <DataTable
+            data={profiles}
+            columns={columns}
+            searchKey="title"
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            addLabel="Add Profile"
+          />
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
@@ -164,8 +176,8 @@ export default function Profiles() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
-              {editingProfile ? 'Update' : 'Create'}
+            <Button onClick={handleSubmit} disabled={insertUpdate.isPending}>
+              {insertUpdate.isPending ? 'Saving...' : (editingProfile ? 'Update' : 'Create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -184,8 +196,8 @@ export default function Profiles() {
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>

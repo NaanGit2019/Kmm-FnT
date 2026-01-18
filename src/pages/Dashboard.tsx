@@ -1,7 +1,8 @@
 import { Header } from '@/components/layout/Header';
 import { StatCard } from '@/components/ui/stat-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Cpu, Layers, Users, Award, TrendingUp, Activity } from 'lucide-react';
-import { dashboardStats, mockTechnologies, mockSkills, mockProfiles } from '@/data/mockData';
+import { useTechnologies, useSkills, useProfiles, useGrades } from '@/hooks/useApi';
 import { 
   BarChart, 
   Bar, 
@@ -15,23 +16,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
-
-const technologyTypeData = [
-  { name: 'Frontend', count: mockTechnologies.filter(t => t.type === 'Frontend').length },
-  { name: 'Backend', count: mockTechnologies.filter(t => t.type === 'Backend').length },
-  { name: 'Database', count: mockTechnologies.filter(t => t.type === 'Database').length },
-  { name: 'Cloud', count: mockTechnologies.filter(t => t.type === 'Cloud').length },
-  { name: 'DevOps', count: mockTechnologies.filter(t => t.type === 'DevOps').length },
-];
-
-const skillDistribution = [
-  { name: 'Component Dev', value: 25 },
-  { name: 'State Mgmt', value: 20 },
-  { name: 'API Integration', value: 18 },
-  { name: 'Database', value: 15 },
-  { name: 'Testing', value: 12 },
-  { name: 'CI/CD', value: 10 },
-];
+import { useMemo } from 'react';
 
 const CHART_COLORS = [
   'hsl(217, 91%, 35%)',
@@ -43,6 +28,48 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
+  const { data: technologies = [], isLoading: techLoading } = useTechnologies();
+  const { data: skills = [], isLoading: skillsLoading } = useSkills();
+  const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
+  const { data: grades = [], isLoading: gradesLoading } = useGrades();
+
+  const isLoading = techLoading || skillsLoading || profilesLoading || gradesLoading;
+
+  const technologyTypeData = useMemo(() => [
+    { name: 'Frontend', count: technologies.filter(t => t.type === 'Frontend').length },
+    { name: 'Backend', count: technologies.filter(t => t.type === 'Backend').length },
+    { name: 'Database', count: technologies.filter(t => t.type === 'Database').length },
+    { name: 'Cloud', count: technologies.filter(t => t.type === 'Cloud').length },
+    { name: 'DevOps', count: technologies.filter(t => t.type === 'DevOps').length },
+  ], [technologies]);
+
+  const skillDistribution = useMemo(() => {
+    return skills.slice(0, 6).map(skill => ({
+      name: skill.title?.substring(0, 15) || 'Unknown',
+      value: Math.floor(Math.random() * 30) + 10 // This would be actual data from API
+    }));
+  }, [skills]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header title="Dashboard" subtitle="Overview of your knowledge matrix" />
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton className="h-80" />
+            <Skeleton className="h-80" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Header 
@@ -55,25 +82,25 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Technologies"
-            value={dashboardStats.totalTechnologies}
+            value={technologies.length}
             icon={Cpu}
             trend={{ value: 12, label: 'from last month' }}
           />
           <StatCard
             title="Skills"
-            value={dashboardStats.totalSkills}
+            value={skills.length}
             icon={Layers}
             trend={{ value: 8, label: 'from last month' }}
           />
           <StatCard
             title="Profiles"
-            value={dashboardStats.totalProfiles}
+            value={profiles.length}
             icon={Users}
             trend={{ value: 5, label: 'from last month' }}
           />
           <StatCard
             title="Grades"
-            value={dashboardStats.totalGrades}
+            value={grades.length}
             icon={Award}
             trend={{ value: 0, label: 'no change' }}
           />
@@ -166,7 +193,7 @@ export default function Dashboard() {
         <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
           <h3 className="text-lg font-semibold text-foreground mb-4">Recent Technologies</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {mockTechnologies.slice(0, 4).map((tech) => (
+            {technologies.slice(0, 4).map((tech) => (
               <div 
                 key={tech.id}
                 className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"

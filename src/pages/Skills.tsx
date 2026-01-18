@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
-import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
-import { mockSkills, mockSubskills } from '@/data/mockData';
-import type { Skill, Subskill } from '@/types';
+import { StatusBadge } from '@/components/ui/data-table';
+import { useSkills, useSubskills, useSkillMutation } from '@/hooks/useApi';
+import type { Skill } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronRight, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -26,8 +26,10 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function Skills() {
-  const [skills, setSkills] = useState<Skill[]>(mockSkills);
-  const [subskills] = useState<Subskill[]>(mockSubskills);
+  const { data: skills = [], isLoading: skillsLoading, error: skillsError } = useSkills();
+  const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
+  const { insertUpdate, deleteMutation } = useSkillMutation();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
@@ -38,6 +40,8 @@ export default function Skills() {
     title: '',
     isactive: true,
   });
+
+  const isLoading = skillsLoading || subskillsLoading;
 
   const toggleExpanded = (skillId: number) => {
     setExpandedSkills(prev => 
@@ -76,35 +80,37 @@ export default function Skills() {
       return;
     }
 
-    if (editingSkill) {
-      setSkills(prev => 
-        prev.map(s => s.id === editingSkill.id 
-          ? { ...s, ...formData, updatedAt: new Date().toISOString() }
-          : s
-        )
-      );
-      toast.success('Skill updated successfully');
-    } else {
-      const newSkill: Skill = {
-        id: Math.max(...skills.map(s => s.id)) + 1,
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-      setSkills(prev => [...prev, newSkill]);
-      toast.success('Skill created successfully');
-    }
-    
-    setDialogOpen(false);
+    const skillData: Skill = {
+      id: editingSkill?.id || 0,
+      ...formData,
+    };
+
+    insertUpdate.mutate(skillData, {
+      onSuccess: () => {
+        setDialogOpen(false);
+      },
+    });
   };
 
   const confirmDelete = () => {
     if (deletingSkill) {
-      setSkills(prev => prev.filter(s => s.id !== deletingSkill.id));
-      toast.success('Skill deleted successfully');
-      setDeleteDialogOpen(false);
-      setDeletingSkill(null);
+      deleteMutation.mutate(deletingSkill.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setDeletingSkill(null);
+        },
+      });
     }
   };
+
+  if (skillsError) {
+    return (
+      <div className="min-h-screen p-6">
+        <Header title="Skills" subtitle="Manage skills and sub-skills" />
+        <div className="text-destructive">Error loading skills: {skillsError.message}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -114,89 +120,96 @@ export default function Skills() {
       />
       
       <div className="p-6">
-        <div className="bg-card rounded-xl border border-border animate-fade-in">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-4 border-b border-border">
-            <h3 className="text-lg font-semibold text-foreground">Skills & Sub-skills</h3>
-            <Button onClick={handleAdd}>
-              Add Skill
-            </Button>
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
           </div>
+        ) : (
+          <div className="bg-card rounded-xl border border-border animate-fade-in">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">Skills & Sub-skills</h3>
+              <Button onClick={handleAdd}>
+                Add Skill
+              </Button>
+            </div>
 
-          {/* Skills List */}
-          <div className="divide-y divide-border">
-            {skills.map((skill) => {
-              const skillSubskills = getSubskillsForSkill(skill.id);
-              const isExpanded = expandedSkills.includes(skill.id);
+            {/* Skills List */}
+            <div className="divide-y divide-border">
+              {skills.map((skill) => {
+                const skillSubskills = getSubskillsForSkill(skill.id);
+                const isExpanded = expandedSkills.includes(skill.id);
 
-              return (
-                <Collapsible 
-                  key={skill.id}
-                  open={isExpanded}
-                  onOpenChange={() => toggleExpanded(skill.id)}
-                >
-                  <div className="p-4 hover:bg-secondary/30 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <ChevronRight className={cn(
-                              "h-4 w-4 transition-transform",
-                              isExpanded && "rotate-90"
-                            )} />
-                          </Button>
-                        </CollapsibleTrigger>
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Layers className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{skill.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {skillSubskills.length} sub-skills
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <StatusBadge active={skill.isactive} />
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(skill)}>
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(skill)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <CollapsibleContent>
-                    <div className="pl-16 pr-4 pb-4 space-y-2">
-                      {skillSubskills.length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-2">
-                          No sub-skills defined
-                        </p>
-                      ) : (
-                        skillSubskills.map((subskill) => (
-                          <div 
-                            key={subskill.id}
-                            className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
-                          >
-                            <span className="text-sm text-foreground">{subskill.title}</span>
-                            <StatusBadge active={subskill.isactive} />
+                return (
+                  <Collapsible 
+                    key={skill.id}
+                    open={isExpanded}
+                    onOpenChange={() => toggleExpanded(skill.id)}
+                  >
+                    <div className="p-4 hover:bg-secondary/30 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <ChevronRight className={cn(
+                                "h-4 w-4 transition-transform",
+                                isExpanded && "rotate-90"
+                              )} />
+                            </Button>
+                          </CollapsibleTrigger>
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <Layers className="w-5 h-5 text-primary" />
                           </div>
-                        ))
-                      )}
+                          <div>
+                            <p className="font-medium text-foreground">{skill.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {skillSubskills.length} sub-skills
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <StatusBadge active={skill.isactive} />
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(skill)}>
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDelete(skill)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
+                    
+                    <CollapsibleContent>
+                      <div className="pl-16 pr-4 pb-4 space-y-2">
+                        {skillSubskills.length === 0 ? (
+                          <p className="text-sm text-muted-foreground py-2">
+                            No sub-skills defined
+                          </p>
+                        ) : (
+                          skillSubskills.map((subskill) => (
+                            <div 
+                              key={subskill.id}
+                              className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
+                            >
+                              <span className="text-sm text-foreground">{subskill.title}</span>
+                              <StatusBadge active={subskill.isactive} />
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
@@ -238,8 +251,8 @@ export default function Skills() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
-              {editingSkill ? 'Update' : 'Create'}
+            <Button onClick={handleSubmit} disabled={insertUpdate.isPending}>
+              {insertUpdate.isPending ? 'Saving...' : (editingSkill ? 'Update' : 'Create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -258,8 +271,8 @@ export default function Skills() {
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>

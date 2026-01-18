@@ -8,31 +8,52 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2, Link2, Users, Cpu, Layers } from 'lucide-react';
-import { mockProfiles, mockTechnologies, mockSkills } from '@/data/mockData';
-import { mockUsers, mockTechnologyProfiles, mockTechnologySkillsExtended, mockProfileUsers } from '@/data/mockUsers';
+import { 
+  useProfiles, 
+  useTechnologies, 
+  useSkills, 
+  useUsers,
+  useTechnologyProfiles,
+  useTechnologySkills,
+  useProfileUsers,
+  useTechnologyProfileMutation,
+  useTechnologySkillMutation,
+  useProfileUserMutation
+} from '@/hooks/useApi';
 import type { MapTechnologyProfile, MapTechnologySkill, MapProfileUser } from '@/types';
 
 export default function Mappings() {
-  // Technology-Profile mappings
-  const [techProfiles, setTechProfiles] = useState<MapTechnologyProfile[]>(mockTechnologyProfiles);
+  const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
+  const { data: technologies = [], isLoading: technologiesLoading } = useTechnologies();
+  const { data: skills = [], isLoading: skillsLoading } = useSkills();
+  const { data: users = [], isLoading: usersLoading } = useUsers();
+  const { data: techProfiles = [], isLoading: techProfilesLoading } = useTechnologyProfiles();
+  const { data: techSkills = [], isLoading: techSkillsLoading } = useTechnologySkills();
+  const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
+
+  const { insertUpdate: insertTechProfile, deleteMutation: deleteTechProfile } = useTechnologyProfileMutation();
+  const { insertUpdate: insertTechSkill, deleteMutation: deleteTechSkill } = useTechnologySkillMutation();
+  const { insertUpdate: insertProfileUser, deleteMutation: deleteProfileUser } = useProfileUserMutation();
+
+  const isLoading = profilesLoading || technologiesLoading || skillsLoading || usersLoading || 
+                    techProfilesLoading || techSkillsLoading || profileUsersLoading;
+
+  // Dialog states
   const [showTechProfileDialog, setShowTechProfileDialog] = useState(false);
   const [newTechProfile, setNewTechProfile] = useState({ technologyId: 0, profileId: 0 });
 
-  // Technology-Skill mappings
-  const [techSkills, setTechSkills] = useState<MapTechnologySkill[]>(mockTechnologySkillsExtended);
   const [showTechSkillDialog, setShowTechSkillDialog] = useState(false);
   const [newTechSkill, setNewTechSkill] = useState({ technologyId: 0, skillId: 0 });
 
-  // Profile-User mappings
-  const [profileUsers, setProfileUsers] = useState<MapProfileUser[]>(mockProfileUsers);
   const [showProfileUserDialog, setShowProfileUserDialog] = useState(false);
   const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0 });
 
-  const getTechnology = (id: number) => mockTechnologies.find(t => t.id === id);
-  const getProfile = (id: number) => mockProfiles.find(p => p.id === id);
-  const getSkill = (id: number) => mockSkills.find(s => s.id === id);
-  const getUser = (id: number) => mockUsers.find(u => u.id === id);
+  const getTechnology = (id: number) => technologies.find(t => t.id === id);
+  const getProfile = (id: number) => profiles.find(p => p.id === id);
+  const getSkill = (id: number) => skills.find(s => s.id === id);
+  const getUser = (id: number) => users.find(u => u.id === id);
 
   // Technology-Profile handlers
   const handleAddTechProfile = () => {
@@ -41,19 +62,23 @@ export default function Mappings() {
         tp => tp.technologyId === newTechProfile.technologyId && tp.profileId === newTechProfile.profileId
       );
       if (!exists) {
-        setTechProfiles([...techProfiles, {
-          id: Math.max(...techProfiles.map(tp => tp.id)) + 1,
+        const data: MapTechnologyProfile = {
+          id: 0,
           ...newTechProfile,
           isactive: true
-        }]);
+        };
+        insertTechProfile.mutate(data, {
+          onSuccess: () => {
+            setShowTechProfileDialog(false);
+            setNewTechProfile({ technologyId: 0, profileId: 0 });
+          }
+        });
       }
-      setShowTechProfileDialog(false);
-      setNewTechProfile({ technologyId: 0, profileId: 0 });
     }
   };
 
   const handleDeleteTechProfile = (id: number) => {
-    setTechProfiles(techProfiles.filter(tp => tp.id !== id));
+    deleteTechProfile.mutate(id);
   };
 
   // Technology-Skill handlers
@@ -63,19 +88,23 @@ export default function Mappings() {
         ts => ts.technologyId === newTechSkill.technologyId && ts.skillId === newTechSkill.skillId
       );
       if (!exists) {
-        setTechSkills([...techSkills, {
-          id: Math.max(...techSkills.map(ts => ts.id)) + 1,
+        const data: MapTechnologySkill = {
+          id: 0,
           ...newTechSkill,
           isactive: true
-        }]);
+        };
+        insertTechSkill.mutate(data, {
+          onSuccess: () => {
+            setShowTechSkillDialog(false);
+            setNewTechSkill({ technologyId: 0, skillId: 0 });
+          }
+        });
       }
-      setShowTechSkillDialog(false);
-      setNewTechSkill({ technologyId: 0, skillId: 0 });
     }
   };
 
   const handleDeleteTechSkill = (id: number) => {
-    setTechSkills(techSkills.filter(ts => ts.id !== id));
+    deleteTechSkill.mutate(id);
   };
 
   // Profile-User handlers
@@ -85,20 +114,34 @@ export default function Mappings() {
         pu => pu.profileId === newProfileUser.profileId && pu.userId === newProfileUser.userId
       );
       if (!exists) {
-        setProfileUsers([...profileUsers, {
-          id: Math.max(...profileUsers.map(pu => pu.id)) + 1,
+        const data: MapProfileUser = {
+          id: 0,
           ...newProfileUser,
           isactive: true
-        }]);
+        };
+        insertProfileUser.mutate(data, {
+          onSuccess: () => {
+            setShowProfileUserDialog(false);
+            setNewProfileUser({ profileId: 0, userId: 0 });
+          }
+        });
       }
-      setShowProfileUserDialog(false);
-      setNewProfileUser({ profileId: 0, userId: 0 });
     }
   };
 
   const handleDeleteProfileUser = (id: number) => {
-    setProfileUsers(profileUsers.filter(pu => pu.id !== id));
+    deleteProfileUser.mutate(id);
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <Header title="Mappings" subtitle="Manage relationships between technologies, skills, profiles, and users" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -176,6 +219,7 @@ export default function Mappings() {
                             variant="ghost" 
                             size="icon"
                             onClick={() => handleDeleteTechProfile(tp.id)}
+                            disabled={deleteTechProfile.isPending}
                           >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
@@ -239,6 +283,7 @@ export default function Mappings() {
                             variant="ghost" 
                             size="icon"
                             onClick={() => handleDeleteTechSkill(ts.id)}
+                            disabled={deleteTechSkill.isPending}
                           >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
@@ -304,6 +349,7 @@ export default function Mappings() {
                             variant="ghost" 
                             size="icon"
                             onClick={() => handleDeleteProfileUser(pu.id)}
+                            disabled={deleteProfileUser.isPending}
                           >
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
@@ -335,7 +381,7 @@ export default function Mappings() {
                   <SelectValue placeholder="Select technology" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockTechnologies.filter(t => t.isactive).map(tech => (
+                  {technologies.filter(t => t.isactive).map(tech => (
                     <SelectItem key={tech.id} value={tech.id.toString()}>
                       {tech.title} ({tech.type})
                     </SelectItem>
@@ -353,7 +399,7 @@ export default function Mappings() {
                   <SelectValue placeholder="Select profile" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockProfiles.filter(p => p.isactive).map(profile => (
+                  {profiles.filter(p => p.isactive).map(profile => (
                     <SelectItem key={profile.id} value={profile.id.toString()}>
                       {profile.title}
                     </SelectItem>
@@ -366,7 +412,9 @@ export default function Mappings() {
             <Button variant="outline" onClick={() => setShowTechProfileDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddTechProfile}>Add Mapping</Button>
+            <Button onClick={handleAddTechProfile} disabled={insertTechProfile.isPending}>
+              {insertTechProfile.isPending ? 'Adding...' : 'Add Mapping'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -388,7 +436,7 @@ export default function Mappings() {
                   <SelectValue placeholder="Select technology" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockTechnologies.filter(t => t.isactive).map(tech => (
+                  {technologies.filter(t => t.isactive).map(tech => (
                     <SelectItem key={tech.id} value={tech.id.toString()}>
                       {tech.title} ({tech.type})
                     </SelectItem>
@@ -406,7 +454,7 @@ export default function Mappings() {
                   <SelectValue placeholder="Select skill" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockSkills.filter(s => s.isactive).map(skill => (
+                  {skills.filter(s => s.isactive).map(skill => (
                     <SelectItem key={skill.id} value={skill.id.toString()}>
                       {skill.title}
                     </SelectItem>
@@ -419,7 +467,9 @@ export default function Mappings() {
             <Button variant="outline" onClick={() => setShowTechSkillDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddTechSkill}>Add Mapping</Button>
+            <Button onClick={handleAddTechSkill} disabled={insertTechSkill.isPending}>
+              {insertTechSkill.isPending ? 'Adding...' : 'Add Mapping'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -441,7 +491,7 @@ export default function Mappings() {
                   <SelectValue placeholder="Select employee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.filter(u => u.isactive).map(user => (
+                  {users.filter(u => u.isactive).map(user => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.name} ({user.department})
                     </SelectItem>
@@ -459,7 +509,7 @@ export default function Mappings() {
                   <SelectValue placeholder="Select profile" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockProfiles.filter(p => p.isactive).map(profile => (
+                  {profiles.filter(p => p.isactive).map(profile => (
                     <SelectItem key={profile.id} value={profile.id.toString()}>
                       {profile.title}
                     </SelectItem>
@@ -472,7 +522,9 @@ export default function Mappings() {
             <Button variant="outline" onClick={() => setShowProfileUserDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddProfileUser}>Add Mapping</Button>
+            <Button onClick={handleAddProfileUser} disabled={insertProfileUser.isPending}>
+              {insertProfileUser.isPending ? 'Adding...' : 'Add Mapping'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

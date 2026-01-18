@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
-import { mockTechnologies } from '@/data/mockData';
+import { useTechnologies, useTechnologyMutation } from '@/hooks/useApi';
 import type { Technology } from '@/types';
 import {
   Dialog,
@@ -23,12 +23,15 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 const technologyTypes = ['Frontend', 'Backend', 'Database', 'Cloud', 'DevOps', 'Mobile', 'Other'];
 
 export default function Technologies() {
-  const [technologies, setTechnologies] = useState<Technology[]>(mockTechnologies);
+  const { data: technologies = [], isLoading, error } = useTechnologies();
+  const { insertUpdate, deleteMutation } = useTechnologyMutation();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingTechnology, setEditingTechnology] = useState<Technology | null>(null);
@@ -97,37 +100,37 @@ export default function Technologies() {
       return;
     }
 
-    if (editingTechnology) {
-      // Update existing
-      setTechnologies(prev => 
-        prev.map(t => t.id === editingTechnology.id 
-          ? { ...t, ...formData, updatedAt: new Date().toISOString() }
-          : t
-        )
-      );
-      toast.success('Technology updated successfully');
-    } else {
-      // Create new
-      const newTech: Technology = {
-        id: Math.max(...technologies.map(t => t.id)) + 1,
-        ...formData,
-        createdAt: new Date().toISOString(),
-      };
-      setTechnologies(prev => [...prev, newTech]);
-      toast.success('Technology created successfully');
-    }
-    
-    setDialogOpen(false);
+    const techData: Technology = {
+      id: editingTechnology?.id || 0,
+      ...formData,
+    };
+
+    insertUpdate.mutate(techData, {
+      onSuccess: () => {
+        setDialogOpen(false);
+      },
+    });
   };
 
   const confirmDelete = () => {
     if (deletingTechnology) {
-      setTechnologies(prev => prev.filter(t => t.id !== deletingTechnology.id));
-      toast.success('Technology deleted successfully');
-      setDeleteDialogOpen(false);
-      setDeletingTechnology(null);
+      deleteMutation.mutate(deletingTechnology.id, {
+        onSuccess: () => {
+          setDeleteDialogOpen(false);
+          setDeletingTechnology(null);
+        },
+      });
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen p-6">
+        <Header title="Technologies" subtitle="Manage technology stack and tools" />
+        <div className="text-destructive">Error loading technologies: {error.message}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -137,15 +140,22 @@ export default function Technologies() {
       />
       
       <div className="p-6">
-        <DataTable
-          data={technologies}
-          columns={columns}
-          searchKey="title"
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          addLabel="Add Technology"
-        />
+        {isLoading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        ) : (
+          <DataTable
+            data={technologies}
+            columns={columns}
+            searchKey="title"
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            addLabel="Add Technology"
+          />
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
@@ -206,8 +216,8 @@ export default function Technologies() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
-              {editingTechnology ? 'Update' : 'Create'}
+            <Button onClick={handleSubmit} disabled={insertUpdate.isPending}>
+              {insertUpdate.isPending ? 'Saving...' : (editingTechnology ? 'Update' : 'Create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -226,8 +236,8 @@ export default function Technologies() {
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
