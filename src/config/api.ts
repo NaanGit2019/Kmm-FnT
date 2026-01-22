@@ -1,5 +1,5 @@
 // API Configuration - Update this to match your .NET backend URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7214/api';
 
 export const API_ENDPOINTS = {
   // Grades

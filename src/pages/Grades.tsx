@@ -48,7 +48,7 @@ export default function Grades() {
       header: 'Level',
       render: (item) => (
         <Badge variant="secondary" className="font-mono">
-          {item.gradelevel}
+          {item.gradelevel || '-'}
         </Badge>
       )
     },
@@ -99,6 +99,10 @@ export default function Grades() {
     insertUpdate.mutate(gradeData, {
       onSuccess: () => {
         setDialogOpen(false);
+        toast.success(editingGrade ? 'Grade updated successfully' : 'Grade created successfully');
+      },
+      onError: (error) => {
+        toast.error(`Failed to ${editingGrade ? 'update' : 'create'} grade: ${error.message}`);
       },
     });
   };
@@ -109,6 +113,10 @@ export default function Grades() {
         onSuccess: () => {
           setDeleteDialogOpen(false);
           setDeletingGrade(null);
+          toast.success('Grade deleted successfully');
+        },
+        onError: (error) => {
+          toast.error(`Failed to delete grade: ${error.message}`);
         },
       });
     }
