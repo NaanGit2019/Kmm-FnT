@@ -113,10 +113,10 @@ export function useProfileMutation() {
 
 // Technology Hooks
 export function useTechnologies() {
-  return useQuery({
-    queryKey: queryKeys.technologies,
-    queryFn: technologyApi.getAll,
-  });
+    return useQuery({
+        queryKey: queryKeys.technologies,
+        queryFn: technologyApi.getAll,
+    });
 }
 
 export function useTechnologyMutation() {

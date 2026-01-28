@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
-import { useTechnologies, useTechnologyMutation } from '@/hooks/useApi';
+import { useTechnology, useTechnologyMutation } from '@/hooks/useApi';
 import type { Technology } from '@/types';
 import {
   Dialog,
@@ -29,7 +29,7 @@ import { toast } from 'sonner';
 const technologyTypes = ['Frontend', 'Backend', 'Database', 'Cloud', 'DevOps', 'Mobile', 'Other'];
 
 export default function Technologies() {
-  const { data: technologies = [], isLoading, error } = useTechnologies();
+  const { data: technologies = [], isLoading, error } = useTechnology();
   const { insertUpdate, deleteMutation } = useTechnologyMutation();
 
   const [dialogOpen, setDialogOpen] = useState(false);
