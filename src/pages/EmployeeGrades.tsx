@@ -16,7 +16,7 @@ import {
     useSubskills,
     useProfiles,
     useUsers,
-    useTechnology,
+    useTechnologies,
     useSkillMaps,
     useProfileUsers,
     useSkillMapMutation,
@@ -52,7 +52,7 @@ export default function EmployeeGrades() {
     const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
     const { data: technologySkills = [] } = useTechnologySkills();
     const { data: technologyProfiles = [] } = useTechnologyProfiles();
-    const { data: technologies = [], isLoading: technologyloading } = useTechnology();
+    const { data: technologies = [], isLoading: technologyloading } = useTechnologies();
     const { insertUpdate } = useSkillMapMutation();
 
     const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
