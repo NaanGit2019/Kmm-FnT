@@ -299,7 +299,7 @@ export function useSkillMapMutation() {
 
 // Technology-Skill Mapping Hooks
 export function useTechnologySkills() {
-    return useQuery({
+    return useQuery<MapTechnologySkill[]>({
         queryKey: queryKeys.technologySkills,
         queryFn: technologySkillApi.getAll,
     });

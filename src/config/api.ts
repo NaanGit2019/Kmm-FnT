@@ -60,19 +60,19 @@ export const API_ENDPOINTS = {
         delete: (id: number) => `${API_BASE_URL}/MapSkillMap/deleteMapSkillMap/${id}`,
     },
 
-    // Technology-Skill Mappings
+// Technology-Skill Mappings
     technologySkills: {
     getAll: `${API_BASE_URL}/TechnologySkill/GetAllTechnologySkill`,
     insertUpdate: `${API_BASE_URL}/TechnologySkill/insertupadateTechnologySkill`,
     delete: (id: number) => `${API_BASE_URL}/TechnologySkill/deleteTechnologySkill/${id}`,
     },
 
-    // Technology-Profile Mappings
-    technologyProfiles: {
-        getAll: `${API_BASE_URL}/TechnologyProfile/GetAllTechnologyProfile`,
-        insertUpdate: `${API_BASE_URL}/TechnologyProfile/insertupadateTechnologyProfile`,
-        delete: (id: number) => `${API_BASE_URL}/TechnologyProfile/deleteTechnologyProfile/${id}`,
-    },
+  // Technology-Profile Mappings
+  technologyProfiles: {
+    getAll: `${API_BASE_URL}/MapTechnologyProfile/GetAllMapTechnologyProfile`,
+    insertUpdate: `${API_BASE_URL}/MapTechnologyProfile/InsertUpdateMapTechnologyProfile`,
+    delete: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/DeleteMapTechnologyProfile/${id}`,
+  },
 
 // Profile-User Mappings
   profileUsers: {
