@@ -79,6 +79,7 @@ export const profileApi = {
 export const technologyApi = {
     getAll: () => apiClient.get<Technology[]>(API_ENDPOINTS.technologies.getAll).then(res => res.data),
     getById: (id: number) => apiClient.get<Technology>(API_ENDPOINTS.technologies.getById(id)).then(res => res.data),
+    getTypes: () => apiClient.get<{ id: number; name: string }[]>(API_ENDPOINTS.technologies.getTypes).then(res => res.data),
     insertUpdate: (data: Technology) => apiClient.post<Technology>(API_ENDPOINTS.technologies.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.technologies.delete(id)).then(res => res.data),
 };
@@ -133,6 +134,7 @@ export const technologyProfileApi = {
 // Profile-User Mapping API
 export const profileUserApi = {
     getAll: () => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getAll).then(res => res.data),
+    getByUser: (userId: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getByUser(userId)).then(res => res.data),
     insertUpdate: (data: MapProfileUser) => apiClient.post<MapProfileUser>(API_ENDPOINTS.profileUsers.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.profileUsers.delete(id)).then(res => res.data),
 };
