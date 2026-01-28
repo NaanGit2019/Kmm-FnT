@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
-import { useTechnology, useTechnologyMutation } from '@/hooks/useApi';
+import { useTechnologies, useTechnologyMutation,useTechnologyTypes} from '@/hooks/useApi';
 import type { Technology } from '@/types';
 import {
   Dialog,
@@ -26,17 +26,17 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
-const technologyTypes = ['Frontend', 'Backend', 'Database', 'Cloud', 'DevOps', 'Mobile', 'Other'];
 
 export default function Technologies() {
-  const { data: technologies = [], isLoading, error } = useTechnology();
+  const { data: technologies = [], isLoading:isTechnologiesLoading, error } = useTechnologies();
+  const { data: technologyTypes = [], isLoading:isTechnologyTypesLoading } = useTechnologyTypes();
   const { insertUpdate, deleteMutation } = useTechnologyMutation();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingTechnology, setEditingTechnology] = useState<Technology | null>(null);
   const [deletingTechnology, setDeletingTechnology] = useState<Technology | null>(null);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     type: '',
@@ -45,15 +45,15 @@ export default function Technologies() {
 
   const columns: Column<Technology>[] = [
     { key: 'id', header: 'ID' },
-    { 
-      key: 'title', 
+    {
+      key: 'title',
       header: 'Title',
       render: (item) => (
         <span className="font-medium text-foreground">{item.title}</span>
       )
     },
-    { 
-      key: 'type', 
+    {
+      key: 'type',
       header: 'Type',
       render: (item) => (
         <Badge variant="outline" className="font-normal">
@@ -61,13 +61,13 @@ export default function Technologies() {
         </Badge>
       )
     },
-    { 
-      key: 'isactive', 
+    {
+      key: 'isactive',
       header: 'Status',
       render: (item) => <StatusBadge active={item.isactive} />
     },
-    { 
-      key: 'createdAt', 
+    {
+      key: 'createdAt',
       header: 'Created',
       render: (item) => item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'
     },
@@ -134,13 +134,13 @@ export default function Technologies() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Technologies" 
+      <Header
+        title="Technologies"
         subtitle="Manage technology stack and tools"
       />
-      
+
       <div className="p-6">
-        {isLoading ? (
+        {isTechnologiesLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-64 w-full" />
@@ -166,12 +166,12 @@ export default function Technologies() {
               {editingTechnology ? 'Edit Technology' : 'Add Technology'}
             </DialogTitle>
             <DialogDescription>
-              {editingTechnology 
+              {editingTechnology
                 ? 'Update the technology details below.'
                 : 'Fill in the details to add a new technology.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title *</Label>
@@ -182,7 +182,7 @@ export default function Technologies() {
                 placeholder="e.g., React, Node.js"
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="type">Type *</Label>
               <Select
@@ -194,14 +194,14 @@ export default function Technologies() {
                 </SelectTrigger>
                 <SelectContent>
                   {technologyTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                    <SelectItem key={type.id} value={type.name}>
+                      {type.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center justify-between">
               <Label htmlFor="isactive">Active</Label>
               <Switch
@@ -211,7 +211,7 @@ export default function Technologies() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel

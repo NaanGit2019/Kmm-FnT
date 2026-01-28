@@ -147,6 +147,14 @@ export function useTechnologyMutation() {
     return { insertUpdate, deleteMutation };
 }
 
+// Technology Types Hook
+export function useTechnologyTypes() {
+    return useQuery({
+        queryKey: ['technologyTypes'],
+        queryFn: technologyApi.getTypes,
+    });
+}
+
 // Skill Hooks
 export function useSkills() {
     return useQuery({
