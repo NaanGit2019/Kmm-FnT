@@ -320,8 +320,8 @@ export default function Mappings() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Employee</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Department</TableHead>
+                    {/* <TableHead>Email</TableHead> */}
+                    {/* <TableHead>Department</TableHead> */}
                     <TableHead>Profile</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
@@ -334,10 +334,10 @@ export default function Mappings() {
                     return (
                       <TableRow key={pu.id}>
                         <TableCell className="font-medium">{user?.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{user?.email}</TableCell>
+                        {/* <TableCell className="text-muted-foreground">{user?.email}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{user?.department}</Badge>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>{profile?.title}</TableCell>
                         <TableCell>
                           <Badge variant={pu.isactive ? "default" : "secondary"}>
