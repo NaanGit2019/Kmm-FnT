@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/Header';
 import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Cpu, Layers, Users, Award, TrendingUp, Activity } from 'lucide-react';
-import { useTechnologies, useSkills, useProfiles, useGrades } from '@/hooks/useApi';
+import { useTechnology, useSkills, useProfiles, useGrades } from '@/hooks/useApi';
 import { 
   BarChart, 
   Bar, 
@@ -28,7 +28,7 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
-  const { data: technologies = [], isLoading: techLoading } = useTechnologies();
+  const { data: technologies = [], isLoading: techLoading } = useTechnology();
   const { data: skills = [], isLoading: skillsLoading } = useSkills();
   const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
   const { data: grades = [], isLoading: gradesLoading } = useGrades();
