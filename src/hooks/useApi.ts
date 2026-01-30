@@ -36,6 +36,7 @@ export const queryKeys = {
     skillMaps: ['skillMaps'] as const,
     technologySkills: ['technologySkills'] as const,
     technologyProfiles: ['technologyProfiles'] as const,
+    technologyProfilesbyprofileid: ['technologyProfilesbyprofileid'] as const,
     profileUsers: ['profileUsers'] as const,
 };
 
@@ -341,6 +342,14 @@ export function useTechnologyProfiles() {
     });
 }
 
+// Technology-Profile Mapping Hooks
+export function useTechnologyProfilesbyprofileid() {
+    return useQuery({
+        queryKey: queryKeys.technologyProfilesbyprofileid,
+        queryFn: technologyProfileApi.getAll,
+    });
+}
+
 export function useTechnologyProfileMutation() {
     const queryClient = useQueryClient();
 
@@ -374,6 +383,31 @@ export function useProfileUsers() {
     return useQuery({
         queryKey: queryKeys.profileUsers,
         queryFn: profileUserApi.getAll,
+    });
+}
+// Profile-User by id Hooks
+export function useProfileUsersbyUserId(userId: number) {
+    return useQuery({
+        queryKey: [queryKeys.profileUsers, ['byUser'], userId],
+        queryFn: () => profileUserApi.getByUser(userId),
+        enabled: userId>0
+    });
+}
+//
+export function useSkillMapsByUser(userId: number) {
+    return useQuery({
+        queryKey: [queryKeys.skillMaps, 'byUser', userId],
+        queryFn: () => skillMapApi.getByUser(userId),
+        enabled: userId > 0, // Only fetch when userId is valid
+    });
+}
+
+//Mapped skills for User 
+export function useMappedskillforuser(userId: number) {
+    return useQuery({
+        queryKey: [queryKeys.skillMaps, 'byUser', userId],
+        queryFn: () => skillMapApi.getByUser(userId),
+        enabled: userId > 0, // Only fetch when userId is valid
     });
 }
 
