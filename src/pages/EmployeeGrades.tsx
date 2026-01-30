@@ -21,7 +21,9 @@ import {
     useProfileUsers,
     useSkillMapMutation,
     useTechnologySkills,
-    useTechnologyProfiles
+    useTechnologyProfiles,
+    useSkillMapsByUser,
+    useTechnologyProfilesbyprofileid
 } from '@/hooks/useApi';
 import type { MapSkillmap } from '@/types';
 import {
@@ -50,8 +52,10 @@ export default function EmployeeGrades() {
     const { data: users = [], isLoading: usersLoading } = useUsers();
     const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
     const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
+    console.log("aa",profileUsers)
     const { data: technologySkills = [] } = useTechnologySkills();
     const { data: technologyProfiles = [] } = useTechnologyProfiles();
+    const { data: technologyProfilesbyprofileid = [] } = useTechnologyProfilesbyprofileid();
     const { data: technologies = [], isLoading: technologyloading } = useTechnologies();
     const { insertUpdate } = useSkillMapMutation();
 
@@ -64,14 +68,28 @@ export default function EmployeeGrades() {
     const [isSaving, setIsSaving] = useState(false);
 
     const selectedUser = users.find(u => u.id === selectedUserId);
+    const { data: useSkillMapsByUserdata = [], isLoading: useSkillMapsByUserLoading } = useSkillMapsByUser(selectedUserId);
+
+    console.log("a", profileUsers);
     const userProfile = profileUsers.find(pu => pu.userId === selectedUserId);
     const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
 
+    //console.log("selectedUserId", selectedUserId);
+    //console.log("selectedUser", selectedUser);
+    console.log("userprofile", userProfile);
+    //console.log("profile", profile);
     const userSkillMaps = useMemo(() =>
         skillMaps.filter(sm => sm.userId === selectedUserId),
         [skillMaps, selectedUserId]
     );
-
+    console.log(userSkillMaps)
+    const skillsWithSubskillsall = useMemo(() =>
+        skills.filter(s => s.isactive).map(skill => ({
+            ...skill,
+            subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
+        })),
+        [skills, subskills]
+    );
     const skillsWithSubskills = useMemo(() =>
         skills.filter(s => s.isactive).map(skill => ({
             ...skill,
@@ -79,6 +97,29 @@ export default function EmployeeGrades() {
         })),
         [skills, subskills]
     );
+    //console.log(skillsWithSubskills)
+    // Get technologies for user's profile (hierarchical: User → Profile → Technologies)
+    console.log("technologyProfiles", technologyProfilesbyprofileid);
+    const userTechnologies = useMemo(() => {
+        if (!userProfile) return [];
+        const techIds = technologyProfilesbyprofileid
+            .filter(tp => tp.profileId === userProfile.profileId)
+            .map(tp => tp.technologyId);
+        console.log("techIds",techIds)
+        return technologies.filter(t => techIds.includes(t.id) && t.isactive);
+    }, [technologyProfilesbyprofileid, technologies, userProfile]);
+    console.log(userTechnologies);
+
+    // Calculate total subskills for all assigned technologies
+    const totalSubskills = useMemo(() => {
+        const techSkillIds = technologySkills
+            .filter(ts => userTechnologies.some(t => t.id === ts.technologyId))
+            .map(ts => ts.skillId);
+
+        return subskills.filter(ss =>
+            techSkillIds.includes(ss.skillId) && ss.isactive
+        ).length;
+    }, [technologySkills, userTechnologies, subskills]);
 
     const getGradeForSubskill = (subskillId: number) => {
         // Check pending changes first
@@ -171,14 +212,6 @@ export default function EmployeeGrades() {
     //    [profiles, userProfile]
     //);
 
-    // Get technologies for user's profile (hierarchical: User → Profile → Technologies)
-    const userTechnologies = useMemo(() => {
-        if (!userProfile) return [];
-        const techIds = technologyProfiles
-            .filter(tp => tp.profileId === userProfile.profileId)
-            .map(tp => tp.technologyId);
-        return technologies.filter(t => techIds.includes(t.id) && t.isactive);
-    }, [technologyProfiles, technologies, userProfile]);
 
     // Get user's skill maps
     //const userSkillMaps = useMemo(() =>
@@ -186,16 +219,6 @@ export default function EmployeeGrades() {
     //    [skillMaps, selectedUserId]
     //);
 
-    // Calculate total subskills for all assigned technologies
-    const totalSubskills = useMemo(() => {
-        const techSkillIds = technologySkills
-            .filter(ts => userTechnologies.some(t => t.id === ts.technologyId))
-            .map(ts => ts.skillId);
-
-        return subskills.filter(ss =>
-            techSkillIds.includes(ss.skillId) && ss.isactive
-        ).length;
-    }, [technologySkills, userTechnologies, subskills]);
 
     // Get grade for a subskill (check pending first, then existing)
     //const getGradeForSubskill = (subskillId: number) => {
@@ -272,8 +295,8 @@ export default function EmployeeGrades() {
                     onUserChange={handleUserChange}
                 />
 
-                {selectedUser && (
-                    <div className="md:col-span-2">
+                { (
+                    <div className=" grid gap-4 md:col-span-2">
                         <GradeLegend grades={grades} />
                     </div>
                 )}

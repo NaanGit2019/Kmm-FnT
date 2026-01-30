@@ -18,14 +18,14 @@ export const API_ENDPOINTS = {
         delete: (id: number) => `${API_BASE_URL}/Profile/deleteProfile/${id}`,
     },
 
-  // Technologies
-  technologies: {
-    getAll: `${API_BASE_URL}/Technology/GetAllTechnology`,
-    getById: (id: number) => `${API_BASE_URL}/Technology/GetTechnologybyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/Technology/InsertUpdateTechnology`,
-    delete: (id: number) => `${API_BASE_URL}/Technology/deleteTechnology/${id}`,
-    getTypes: `${API_BASE_URL}/Technology/GetTechnologyTypes`,
-  },
+    // Technologies
+    technologies: {
+        getAll: `${API_BASE_URL}/Technology/GetAllTechnology`,
+        getById: (id: number) => `${API_BASE_URL}/Technology/GetTechnologybyId/${id}`,
+        insertUpdate: `${API_BASE_URL}/Technology/InsertUpdateTechnology`,
+        delete: (id: number) => `${API_BASE_URL}/Technology/deleteTechnology/${id}`,
+        getTypes: `${API_BASE_URL}/Technology/GetTechnologyTypes`,
+    },
 
     // Skills
     skills: {
@@ -60,25 +60,33 @@ export const API_ENDPOINTS = {
         delete: (id: number) => `${API_BASE_URL}/MapSkillMap/deleteMapSkillMap/${id}`,
     },
 
-// Technology-Skill Mappings
+    // Technology-Skill Mappings
     technologySkills: {
-    getAll: `${API_BASE_URL}/TechnologySkill/GetAllTechnologySkill`,
-    insertUpdate: `${API_BASE_URL}/TechnologySkill/insertupadateTechnologySkill`,
-    delete: (id: number) => `${API_BASE_URL}/TechnologySkill/deleteTechnologySkill/${id}`,
+        getAll: `${API_BASE_URL}/MapToTechnologySkill/GetAllTechnologySkills`,
+        insertUpdate: `${API_BASE_URL}/MapToTechnologySkill/insertupadateTechnologySkill`,
+        delete: (id: number) => `${API_BASE_URL}/MapToTechnologySkill/deleteTechnologySkill/${id}`,
     },
 
-  // Technology-Profile Mappings
-  technologyProfiles: {
-    getAll: `${API_BASE_URL}/MapTechnologyProfile/GetAllMapTechnologyProfile`,
-    insertUpdate: `${API_BASE_URL}/MapTechnologyProfile/InsertUpdateMapTechnologyProfile`,
-    delete: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/DeleteMapTechnologyProfile/${id}`,
-  },
+    // Technology-Profile Mappings
+    technologyProfiles: {
+        getAll: `${API_BASE_URL}/MapTechnologyProfile/GetAllMapTechnologyProfile`,
+        getByprofile: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/GetMapTechnologyProfilebyId/${id}`,
+        insertUpdate: `${API_BASE_URL}/MapTechnologyProfile/InsertUpdateMapTechnologyProfile`,
+        delete: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/DeleteMapTechnologyProfile/${id}`,
+    },
 
-// Profile-User Mappings
-  profileUsers: {
-    getAll: `${API_BASE_URL}/MapToProfileUser/GetAllProfileUser`,
-    getByUser: (userId: number) => `${API_BASE_URL}/MapToProfileUser/GetPofileUserById/${userId}`,
-    insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
-    delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
-  },
+    // Profile-User Mappings
+    profileUsers: {
+        getAll: `${API_BASE_URL}/MapToProfileUser/GetAllProfileUser`,
+        getByUser: (userId: number) => `${API_BASE_URL}/MapToProfileUser/GetPofileUserById/${userId}`,
+        insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
+        delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
+    },
+    // Profile-User Mappings
+    mappedskillforuser: {
+        getAll: `${API_BASE_URL}/MapSkillMap/GetAllMappedSkillbyUser`,
+        getByUser: (userId: number) => `${API_BASE_URL}/MapSkillMap/GetAllMappedSkillbyUser/${userId}`,
+        insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
+        delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
+    },
 };

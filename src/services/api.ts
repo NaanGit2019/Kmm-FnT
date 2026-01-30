@@ -127,6 +127,7 @@ export const technologySkillApi = {
 // Technology-Profile Mapping API
 export const technologyProfileApi = {
     getAll: () => apiClient.get<MapTechnologyProfile[]>(API_ENDPOINTS.technologyProfiles.getAll).then(res => res.data),
+    getByprofile: (ID: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.technologyProfiles.getByprofile(ID)).then(res => res.data),
     insertUpdate: (data: MapTechnologyProfile) => apiClient.post<MapTechnologyProfile>(API_ENDPOINTS.technologyProfiles.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.technologyProfiles.delete(id)).then(res => res.data),
 };
@@ -137,6 +138,14 @@ export const profileUserApi = {
     getByUser: (userId: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getByUser(userId)).then(res => res.data),
     insertUpdate: (data: MapProfileUser) => apiClient.post<MapProfileUser>(API_ENDPOINTS.profileUsers.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.profileUsers.delete(id)).then(res => res.data),
+};
+
+// Profile-User Mapping API
+export const mappedskillforuserApi = {
+   // getAll: () => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getAll).then(res => res.data),
+    getByUser: (userId: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.mappedskillforuser.getByUser(userId)).then(res => res.data),
+    //insertUpdate: (data: MapProfileUser) => apiClient.post<MapProfileUser>(API_ENDPOINTS.profileUsers.insertUpdate, data).then(res => res.data),
+    //delete: (id: number) => apiClient.delete(API_ENDPOINTS.profileUsers.delete(id)).then(res => res.data),
 };
 
 // Export the axios instance for custom requests
