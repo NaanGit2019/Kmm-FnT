@@ -9,7 +9,8 @@ import {
     skillMapApi,
     technologySkillApi,
     technologyProfileApi,
-    profileUserApi
+    profileUserApi,
+    matrixAPI
 } from '@/services/api';
 import type {
     Grade,
@@ -38,6 +39,7 @@ export const queryKeys = {
     technologyProfiles: ['technologyProfiles'] as const,
     technologyProfilesbyprofileid: ['technologyProfilesbyprofileid'] as const,
     profileUsers: ['profileUsers'] as const,
+    matrix: ['matrix'] as const,
 };
 
 // Grade Hooks
@@ -395,11 +397,48 @@ export function useProfileUsersbyUserId(userId: number) {
 }
 //
 export function useSkillMapsByUser(userId: number) {
-    return useQuery({
+    return useQuery<MapSkillmap[]>({
         queryKey: [queryKeys.skillMaps, 'byUser', userId],
         queryFn: () => skillMapApi.getByUser(userId),
         enabled: userId > 0, // Only fetch when userId is valid
     });
+}
+//get all skill mapped to user
+export function useSkillByUser(userId: number) {
+    return useQuery({
+        queryKey: [queryKeys.matrix,'skill', 'byUser', userId],
+        queryFn: () => matrixAPI.getskillByUser(userId),
+        enabled: userId > 0, // Only fetch when userId is valid
+    });
+}
+//get all sub-skill mapped to user
+export function useSubSkillByUser(userId: number) {
+    return useQuery({
+        queryKey: [queryKeys.matrix,'subskill', 'byUser', userId],
+        queryFn: () => matrixAPI.getsubskillByUser(userId),
+        enabled: userId > 0, // Only fetch when userId is valid
+    });
+}
+//get all technology mapped to user
+export function useTechnologyByUser(userId: number) {
+    return useQuery({
+        queryKey: [queryKeys.matrix,'technology', 'byUser', userId],
+        queryFn: () => matrixAPI.gettechnologyByUser(userId),
+        enabled: userId > 0, // Only fetch when userId is valid
+    });
+}
+//get all technologyskill mapped to user
+export function useTechnologyskillByUser(userId: number) {
+    return useQuery<MapTechnologySkill[]>({
+        queryKey: [queryKeys.matrix,'gettechnologyskillbyuser', 'byUser', userId],
+        queryFn: () => matrixAPI.gettechnologyskillbyuser(userId),
+        enabled: userId > 0, // Only fetch when userId is valid
+    });
+    //return useQuery<MapTechnologySkill[]>({
+    //    queryKey: [queryKeys.matrix,'technologyskill', 'byUser', userId],
+    //    queryFn: () => matrixAPI.gettechnologyskillbyuser(userId),
+    //    enabled: userId > 0, // Only fetch when userId is valid
+    //});
 }
 
 //Mapped skills for User 
