@@ -14,6 +14,7 @@ interface TechnologyTabsProps {
     skills: Skill[];
     subskills: Subskill[];
     grades: Grade[];
+    mappedsubskill
     getGradeForSubskill: (subskillId: number) => number;
     onGradeChange: (subskillId: number, gradeId: number) => void;
 }
@@ -24,7 +25,8 @@ export function TechnologyTabs({
     skills,
     subskills,
     grades,
-    getGradeForSubskill,
+    mappedsubskill,
+     getGradeForSubskill,
     onGradeChange,
 }: TechnologyTabsProps) {
     if (technologies.length === 0) {

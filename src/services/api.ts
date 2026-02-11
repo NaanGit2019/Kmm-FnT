@@ -9,7 +9,7 @@ import type {
     MapSkillmap,
     MapTechnologySkill,
     MapTechnologyProfile,
-    MapProfileUser
+    MapProfileUser,
 } from '@/types';
 import type { User } from '@/types/user';
 
@@ -146,6 +146,14 @@ export const mappedskillforuserApi = {
     getByUser: (userId: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.mappedskillforuser.getByUser(userId)).then(res => res.data),
     //insertUpdate: (data: MapProfileUser) => apiClient.post<MapProfileUser>(API_ENDPOINTS.profileUsers.insertUpdate, data).then(res => res.data),
     //delete: (id: number) => apiClient.delete(API_ENDPOINTS.profileUsers.delete(id)).then(res => res.data),
+};
+
+// matrix API
+export const matrixAPI = {
+    gettechnologyByUser: (userId: number) => apiClient.get<Technology[]>(API_ENDPOINTS.matrix.gettechnologybyuser(userId)).then(res => res.data),
+    getskillByUser: (userId: number) => apiClient.get<Skill[]>(API_ENDPOINTS.matrix.getskillbyuser(userId)).then(res => res.data),
+    getsubskillByUser: (userId: number) => apiClient.get<Subskill[]>(API_ENDPOINTS.matrix.getsubskillbyuser(userId)).then(res => res.data),
+    gettechnologyskillbyuser: (userId: number) => apiClient.get<MapTechnologySkill[]>(API_ENDPOINTS.matrix.gettechnologyskillbyuser(userId)).then(res => res.data),
 };
 
 // Export the axios instance for custom requests
