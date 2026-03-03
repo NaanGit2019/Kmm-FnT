@@ -9,7 +9,7 @@ import type {
     MapSkillmap,
     MapTechnologySkill,
     MapTechnologyProfile,
-    MapProfileUser,
+    MapProfileUser
 } from '@/types';
 import type { User } from '@/types/user';
 
@@ -126,7 +126,6 @@ export const technologySkillApi = {
 // Technology-Profile Mapping API
 export const technologyProfileApi = {
     getAll: () => apiClient.get<MapTechnologyProfile[]>(API_ENDPOINTS.technologyProfiles.getAll).then(res => res.data),
-    getByprofile: (ID: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.technologyProfiles.getByprofile(ID)).then(res => res.data),
     insertUpdate: (data: MapTechnologyProfile) => apiClient.post<MapTechnologyProfile>(API_ENDPOINTS.technologyProfiles.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.technologyProfiles.delete(id)).then(res => res.data),
 };
