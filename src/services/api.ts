@@ -24,11 +24,10 @@ const apiClient = axios.create({
 // Request interceptor for adding auth tokens, logging, etc.
 apiClient.interceptors.request.use(
     (config) => {
-        // You can add auth token here if needed
-        // const token = localStorage.getItem('token');
-        // if (token) {
-        //   config.headers.Authorization = `Bearer ${token}`;
-        // }
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {
@@ -142,7 +141,7 @@ export const profileUserApi = {
 
 // Profile-User Mapping API
 export const mappedskillforuserApi = {
-   // getAll: () => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getAll).then(res => res.data),
+    // getAll: () => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getAll).then(res => res.data),
     getByUser: (userId: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.mappedskillforuser.getByUser(userId)).then(res => res.data),
     //insertUpdate: (data: MapProfileUser) => apiClient.post<MapProfileUser>(API_ENDPOINTS.profileUsers.insertUpdate, data).then(res => res.data),
     //delete: (id: number) => apiClient.delete(API_ENDPOINTS.profileUsers.delete(id)).then(res => res.data),
