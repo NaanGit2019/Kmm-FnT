@@ -28,6 +28,7 @@ export interface Skill extends CommonFields {
 
 export interface Subskill extends CommonFields {
   skillId: number;
+  skillTitle?: string;
   title?: string;
   skill?: Skill;
 }

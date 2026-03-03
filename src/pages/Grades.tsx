@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
 import { useGrades, useGradeMutation } from '@/hooks/useApi';
+import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import type { Grade } from '@/types';
 import {
   Dialog,
@@ -27,6 +28,13 @@ export default function Grades() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
   const [deletingGrade, setDeletingGrade] = useState<Grade | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive'>('active');
+  
+  const filterByStatus = (items: Grade[], filter: 'active' | 'inactive'): Grade[] => {
+    if (filter === 'active') return items.filter(item => item.isactive === true);
+    if (filter === 'inactive') return items.filter(item => item.isactive === false);
+    return items;
+  };
   
   const [formData, setFormData] = useState({
     title: '',
@@ -35,7 +43,7 @@ export default function Grades() {
   });
 
   const columns: Column<Grade>[] = [
-    { key: 'id', header: 'ID' },
+    //{ key: 'id', header: 'ID' },
     { 
       key: 'title', 
       header: 'Title',
@@ -145,15 +153,25 @@ export default function Grades() {
             <Skeleton className="h-64 w-full" />
           </div>
         ) : (
-          <DataTable
-            data={grades}
-            columns={columns}
-            searchKey="title"
-            onAdd={handleAdd}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            addLabel="Add Grade"
-          />
+          <div className="bg-card rounded-xl border border-border animate-fade-in">
+            {/* Table */}
+            <DataTable
+  title="Grades"
+  data={filterByStatus(grades, statusFilter)}
+  columns={columns}
+  searchKey="title"
+  onAdd={handleAdd}
+  addLabel="Add Grade"
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+  headerActions={
+    <ActiveInactiveSelector
+      value={statusFilter}
+      onChange={setStatusFilter}
+    />
+  }
+/>
+          </div>
         )}
       </div>
 
