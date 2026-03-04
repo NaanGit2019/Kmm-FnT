@@ -1,10 +1,10 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Cpu, 
-  Layers, 
-  Users, 
-  Award, 
+import {
+  LayoutDashboard,
+  Cpu,
+  Layers,
+  Users,
+  Award,
   Grid3X3,
   ChevronLeft,
   ChevronRight,
@@ -34,7 +34,7 @@ export function Sidebar() {
   const location = useLocation();
 
   return (
-    <div 
+    <div
       className={cn(
         "flex flex-col h-screen bg-sidebar transition-all duration-300",
         collapsed ? "w-16" : "w-64"
@@ -64,8 +64,8 @@ export function Sidebar() {
               to={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                isActive 
-                  ? "bg-sidebar-accent text-sidebar-primary" 
+                isActive
+                  ? "bg-sidebar-accent text-sidebar-primary"
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
               )}
             >
