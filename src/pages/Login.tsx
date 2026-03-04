@@ -45,12 +45,6 @@ export default function Login() {
       return;
     }
     setIsLoading(true);
-    // Mock login
-    // setTimeout(() => {
-    //  setIsLoading(false);
-    //toast.success(`Welcome back, ${username}!`);
-    //navigate('/');
-    // }, 800);
     try {
       const response = await fetch("https://ngo-userauth-dev-api.saldobooks.com/user/signin/",
         {
@@ -88,6 +82,12 @@ export default function Login() {
     }
     setIsLoading(false);
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    toast.success('Logged out successfully');
+    navigate('/login');
+  }
 
   // Adjust based on actual response structure);
 
