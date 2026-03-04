@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
-import { useTechnologies, useTechnologyMutation,useTechnologyTypes} from '@/hooks/useApi';
+import { useTechnology, useTechnologyMutation, useTechnologyTypes } from '@/hooks/useApi';
 import type { Technology } from '@/types';
 import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import {
@@ -29,9 +29,8 @@ import { toast } from 'sonner';
 
 
 export default function Technologies() {
-  const { data: technologiesData, isLoading:isTechnologiesLoading, error } = useTechnologies();
-  const { data: technologyTypesData, isLoading:isTechnologyTypesLoading } = useTechnologyTypes();
-  const { data: technologies = [], isLoading, error } = useTechnologies();
+  const { data: technologiesData, isLoading: isTechnologiesLoading, error } = useTechnology();
+  const { data: technologyTypesData, isLoading: isTechnologyTypesLoading } = useTechnologyTypes();
   const { insertUpdate, deleteMutation } = useTechnologyMutation();
 
   const technologies = technologiesData ?? [];
@@ -42,8 +41,8 @@ export default function Technologies() {
   const [editingTechnology, setEditingTechnology] = useState<Technology | null>(null);
   const [deletingTechnology, setDeletingTechnology] = useState<Technology | null>(null);
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive'>('active');
-  
-  const filterByStatus = (items: Technology[], filter:'active' | 'inactive'): Technology[] => {
+
+  const filterByStatus = (items: Technology[], filter: 'active' | 'inactive'): Technology[] => {
     if (filter === 'active') return items.filter(item => item.isactive === true);
     if (filter === 'inactive') return items.filter(item => item.isactive === false);
     return items;
@@ -159,24 +158,24 @@ export default function Technologies() {
           </div>
         ) : (
           <div className="bg-card rounded-xl border border-border animate-fade-in">
-         
+
             <DataTable
-  title="Technologies"
-  searchKey="title" 
-  data={filterByStatus(technologies, statusFilter)}
-  columns={columns}
-  onAdd={handleAdd}
-  addLabel="Add Technology"
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-  headerActions={
-    <ActiveInactiveSelector
-      value={statusFilter}
-      onChange={setStatusFilter}
-    />
-  }
-/>
-</div>
+              title="Technologies"
+              searchKey="title"
+              data={filterByStatus(technologies, statusFilter)}
+              columns={columns}
+              onAdd={handleAdd}
+              addLabel="Add Technology"
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              headerActions={
+                <ActiveInactiveSelector
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                />
+              }
+            />
+          </div>
         )}
       </div>
 
@@ -204,7 +203,7 @@ export default function Technologies() {
                 placeholder="e.g., React, Node.js"
               />
             </div>
-             <div className="grid gap-2">
+            <div className="grid gap-2">
               <Label htmlFor="type">Type *</Label>
               <Select
                 value={formData.type}

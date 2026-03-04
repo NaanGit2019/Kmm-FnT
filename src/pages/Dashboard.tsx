@@ -3,13 +3,13 @@ import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Cpu, Layers, Users, Award, TrendingUp, Activity } from 'lucide-react';
 import { useTechnology, useSkills, useProfiles, useGrades } from '@/hooks/useApi';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -72,11 +72,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Dashboard" 
+      <Header
+        title="Dashboard"
         subtitle="Overview of your knowledge matrix"
       />
-      
+
       <div className="p-6 space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -121,25 +121,25 @@ export default function Dashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={technologyTypeData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                   />
-                  <YAxis 
+                  <YAxis
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
                   />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px',
                     }}
                   />
-                  <Bar 
-                    dataKey="count" 
-                    fill="hsl(var(--primary))" 
+                  <Bar
+                    dataKey="count"
+                    fill="hsl(var(--primary))"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
@@ -169,13 +169,13 @@ export default function Dashboard() {
                     dataKey="value"
                   >
                     {skillDistribution.map((_, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CHART_COLORS[index % CHART_COLORS.length]}
                       />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',
@@ -194,7 +194,7 @@ export default function Dashboard() {
           <h3 className="text-lg font-semibold text-foreground mb-4">Recent Technologies</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {technologies.slice(0, 4).map((tech) => (
-              <div 
+              <div
                 key={tech.id}
                 className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
               >

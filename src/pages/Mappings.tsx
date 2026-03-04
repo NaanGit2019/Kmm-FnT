@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import { Label } from '@/components/ui/label';
@@ -12,10 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2, Link2, Users, Cpu, Layers, Edit2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { 
-  useProfiles, 
-  useTechnology, 
-  useSkills, 
+import {
+  useProfiles,
+  useTechnology,
+  useSkills,
   useUsers,
   useTechnologyProfiles,
   useTechnologySkills,
@@ -27,35 +27,28 @@ import {
 import type { MapTechnologyProfile, MapTechnologySkill, MapProfileUser } from '@/types';
 
 export default function Mappings() {
-  const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
-  const { data: technologies = [], isLoading: technologiesLoading } = useTechnology();
-  const { data: skills = [], isLoading: skillsLoading } = useSkills();
-  const { data: users = [], isLoading: usersLoading } = useUsers();
-  const { data: techProfiles = [], isLoading: techProfilesLoading } = useTechnologyProfiles();
-  const { data: techSkills = [], isLoading: techSkillsLoading } = useTechnologySkills();
-  const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
   const { data: profilesData, isLoading: profilesLoading } = useProfiles();
-  const { data: technologiesData, isLoading: technologiesLoading } = useTechnologies();
+  const { data: technologiesData, isLoading: technologiesLoading } = useTechnology();
   const { data: skillsData, isLoading: skillsLoading } = useSkills();
   const { data: usersData, isLoading: usersLoading } = useUsers();
   const { data: techProfilesData, isLoading: techProfilesLoading } = useTechnologyProfiles();
   const { data: techSkillsData, isLoading: techSkillsLoading } = useTechnologySkills();
   const { data: profileUsersData, isLoading: profileUsersLoading } = useProfileUsers();
 
-  const profiles = profilesData ?? [];
-  const technologies = technologiesData ?? [];
-  const skills = skillsData ?? [];
-  const users = usersData ?? [];
-  const techProfiles = techProfilesData ?? [];
-  const techSkills = techSkillsData ?? [];
-  const profileUsers = profileUsersData ?? [];
+  const profiles = useMemo(() => profilesData ?? [], [profilesData]);
+  const technologies = useMemo(() => technologiesData ?? [], [technologiesData]);
+  const skills = useMemo(() => skillsData ?? [], [skillsData]);
+  const users = useMemo(() => usersData ?? [], [usersData]);
+  const techProfiles = useMemo(() => techProfilesData ?? [], [techProfilesData]);
+  const techSkills = useMemo(() => techSkillsData ?? [], [techSkillsData]);
+  const profileUsers = useMemo(() => profileUsersData ?? [], [profileUsersData]);
 
   const { insertUpdate: insertTechProfile, deleteMutation: deleteTechProfile } = useTechnologyProfileMutation();
   const { insertUpdate: insertTechSkill, deleteMutation: deleteTechSkill } = useTechnologySkillMutation();
   const { insertUpdate: insertProfileUser, deleteMutation: deleteProfileUser } = useProfileUserMutation();
 
-  const isLoading = profilesLoading || technologiesLoading || skillsLoading || usersLoading || 
-                    techProfilesLoading || techSkillsLoading || profileUsersLoading;
+  const isLoading = profilesLoading || technologiesLoading || skillsLoading || usersLoading ||
+    techProfilesLoading || techSkillsLoading || profileUsersLoading;
 
   // Dialog states
   const [showTechProfileDialog, setShowTechProfileDialog] = useState(false);
@@ -69,7 +62,7 @@ export default function Mappings() {
   const [showProfileUserDialog, setShowProfileUserDialog] = useState(false);
   const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0, isactive: true });
   const [editingProfileUser, setEditingProfileUser] = useState<MapProfileUser | null>(null);
-  
+
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteType, setDeleteType] = useState<'techProfile' | 'techSkill' | 'profileUser' | null>(null);
@@ -126,34 +119,34 @@ export default function Mappings() {
   };
 
   const handleDeleteClick = (
-  type: 'techProfile' | 'techSkill' | 'profileUser',
-  id: number
-) => {
-  setDeleteType(type);
-  setDeleteId(id);
-  setDeleteDialogOpen(true);
-};
+    type: 'techProfile' | 'techSkill' | 'profileUser',
+    id: number
+  ) => {
+    setDeleteType(type);
+    setDeleteId(id);
+    setDeleteDialogOpen(true);
+  };
 
-const confirmDelete = () => {
-  if (!deleteId || !deleteType) return;
+  const confirmDelete = () => {
+    if (!deleteId || !deleteType) return;
 
-  if (deleteType === 'techProfile') {
-    deleteTechProfile.mutate(deleteId);
-  }
+    if (deleteType === 'techProfile') {
+      deleteTechProfile.mutate(deleteId);
+    }
 
-  if (deleteType === 'techSkill') {
-    deleteTechSkill.mutate(deleteId);
-  }
+    if (deleteType === 'techSkill') {
+      deleteTechSkill.mutate(deleteId);
+    }
 
-  if (deleteType === 'profileUser') {
-    deleteProfileUser.mutate(deleteId);
-  }
+    if (deleteType === 'profileUser') {
+      deleteProfileUser.mutate(deleteId);
+    }
 
-  // close dialog & reset
-  setDeleteDialogOpen(false);
-  setDeleteType(null);
-  setDeleteId(null);
-};
+    // close dialog & reset
+    setDeleteDialogOpen(false);
+    setDeleteType(null);
+    setDeleteId(null);
+  };
 
 
   // Technology-Skill handlers
@@ -242,8 +235,8 @@ const confirmDelete = () => {
 
   return (
     <div className="space-y-6">
-      <Header 
-        title="Mappings" 
+      <Header
+        title="Mappings"
         subtitle="Manage relationships between technologies, skills, profiles, and users"
       />
 
@@ -495,8 +488,8 @@ const confirmDelete = () => {
       </Tabs>
 
       {/* Technology-Profile Dialog */}
-      <Dialog 
-        open={showTechProfileDialog} 
+      <Dialog
+        open={showTechProfileDialog}
         onOpenChange={(open) => {
           setShowTechProfileDialog(open);
           if (!open) {
@@ -512,9 +505,9 @@ const confirmDelete = () => {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label>Technology</Label>
-              <Select 
-                value={newTechProfile.technologyId.toString()} 
-                onValueChange={(v) => setNewTechProfile({...newTechProfile, technologyId: parseInt(v)})}
+              <Select
+                value={newTechProfile.technologyId.toString()}
+                onValueChange={(v) => setNewTechProfile({ ...newTechProfile, technologyId: parseInt(v) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select technology" />
@@ -530,9 +523,9 @@ const confirmDelete = () => {
             </div>
             <div className="space-y-2">
               <Label>Profile</Label>
-              <Select 
-                value={newTechProfile.profileId.toString()} 
-                onValueChange={(v) => setNewTechProfile({...newTechProfile, profileId: parseInt(v)})}
+              <Select
+                value={newTechProfile.profileId.toString()}
+                onValueChange={(v) => setNewTechProfile({ ...newTechProfile, profileId: parseInt(v) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select profile" />
@@ -551,7 +544,7 @@ const confirmDelete = () => {
               <Switch
                 id="tech-profile-active"
                 checked={newTechProfile.isactive}
-                onCheckedChange={(checked) => setNewTechProfile({...newTechProfile, isactive: checked})}
+                onCheckedChange={(checked) => setNewTechProfile({ ...newTechProfile, isactive: checked })}
               />
             </div>
           </div>
@@ -567,8 +560,8 @@ const confirmDelete = () => {
       </Dialog>
 
       {/* Technology-Skill Dialog */}
-      <Dialog 
-        open={showTechSkillDialog} 
+      <Dialog
+        open={showTechSkillDialog}
         onOpenChange={(open) => {
           setShowTechSkillDialog(open);
           if (!open) {
@@ -584,9 +577,9 @@ const confirmDelete = () => {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label>Technology</Label>
-              <Select 
-                value={newTechSkill.technologyId.toString()} 
-                onValueChange={(v) => setNewTechSkill({...newTechSkill, technologyId: parseInt(v)})}
+              <Select
+                value={newTechSkill.technologyId.toString()}
+                onValueChange={(v) => setNewTechSkill({ ...newTechSkill, technologyId: parseInt(v) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select technology" />
@@ -602,9 +595,9 @@ const confirmDelete = () => {
             </div>
             <div className="space-y-2">
               <Label>Skill</Label>
-              <Select 
-                value={newTechSkill.skillId.toString()} 
-                onValueChange={(v) => setNewTechSkill({...newTechSkill, skillId: parseInt(v)})}
+              <Select
+                value={newTechSkill.skillId.toString()}
+                onValueChange={(v) => setNewTechSkill({ ...newTechSkill, skillId: parseInt(v) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select skill" />
@@ -623,7 +616,7 @@ const confirmDelete = () => {
               <Switch
                 id="tech-skill-active"
                 checked={newTechSkill.isactive}
-                onCheckedChange={(checked) => setNewTechSkill({...newTechSkill, isactive: checked})}
+                onCheckedChange={(checked) => setNewTechSkill({ ...newTechSkill, isactive: checked })}
               />
             </div>
           </div>
@@ -639,8 +632,8 @@ const confirmDelete = () => {
       </Dialog>
 
       {/* Profile-User Dialog */}
-      <Dialog 
-        open={showProfileUserDialog} 
+      <Dialog
+        open={showProfileUserDialog}
         onOpenChange={(open) => {
           setShowProfileUserDialog(open);
           if (!open) {
@@ -656,9 +649,9 @@ const confirmDelete = () => {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label>Employee</Label>
-              <Select 
-                value={newProfileUser.userId.toString()} 
-                onValueChange={(v) => setNewProfileUser({...newProfileUser, userId: parseInt(v)})}
+              <Select
+                value={newProfileUser.userId.toString()}
+                onValueChange={(v) => setNewProfileUser({ ...newProfileUser, userId: parseInt(v) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select employee" />
@@ -674,9 +667,9 @@ const confirmDelete = () => {
             </div>
             <div className="space-y-2">
               <Label>Profile</Label>
-              <Select 
-                value={newProfileUser.profileId.toString()} 
-                onValueChange={(v) => setNewProfileUser({...newProfileUser, profileId: parseInt(v)})}
+              <Select
+                value={newProfileUser.profileId.toString()}
+                onValueChange={(v) => setNewProfileUser({ ...newProfileUser, profileId: parseInt(v) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select profile" />
@@ -695,7 +688,7 @@ const confirmDelete = () => {
               <Switch
                 id="profile-user-active"
                 checked={newProfileUser.isactive}
-                onCheckedChange={(checked) => setNewProfileUser({...newProfileUser, isactive: checked})}
+                onCheckedChange={(checked) => setNewProfileUser({ ...newProfileUser, isactive: checked })}
               />
             </div>
           </div>
@@ -714,31 +707,31 @@ const confirmDelete = () => {
       {/* Delete Confirmation Dialog */}
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-  <DialogContent className="sm:max-w-[425px]">
-    <DialogHeader>
-      <DialogTitle>Confirm Delete</DialogTitle>
-      <DialogDescription>
-        Are you sure you want to delete this mapping? This action cannot be undone.
-      </DialogDescription>
-    </DialogHeader>
-    <DialogFooter>
-      <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-        Cancel
-      </Button>
-      <Button
-        variant="destructive"
-        onClick={confirmDelete}
-        disabled={
-          deleteTechProfile.isPending ||
-          deleteTechSkill.isPending ||
-          deleteProfileUser.isPending
-        }
-      >
-        Delete
-      </Button>
-    </DialogFooter>
-  </DialogContent>
-</Dialog>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this mapping? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={
+                deleteTechProfile.isPending ||
+                deleteTechSkill.isPending ||
+                deleteProfileUser.isPending
+              }
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
