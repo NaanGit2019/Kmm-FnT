@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2, Link2, Users, Cpu, Layers } from 'lucide-react';
 import { 
   useProfiles, 
-  useTechnologies, 
+  useTechnology, 
   useSkills, 
   useUsers,
   useTechnologyProfiles,
@@ -26,7 +26,7 @@ import type { MapTechnologyProfile, MapTechnologySkill, MapProfileUser } from '@
 
 export default function Mappings() {
   const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
-  const { data: technologies = [], isLoading: technologiesLoading } = useTechnologies();
+  const { data: technologies = [], isLoading: technologiesLoading } = useTechnology();
   const { data: skills = [], isLoading: skillsLoading } = useSkills();
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const { data: techProfiles = [], isLoading: techProfilesLoading } = useTechnologyProfiles();

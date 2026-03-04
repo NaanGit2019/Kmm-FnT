@@ -28,8 +28,7 @@ import { toast } from 'sonner';
 
 
 export default function Technologies() {
-  const { data: technologies = [], isLoading:isTechnologiesLoading, error } = useTechnologies();
-  const { data: technologyTypes = [], isLoading:isTechnologyTypesLoading } = useTechnologyTypes();
+  const { data: technologies = [], isLoading, error } = useTechnologies();
   const { insertUpdate, deleteMutation } = useTechnologyMutation();
 
   const [dialogOpen, setDialogOpen] = useState(false);

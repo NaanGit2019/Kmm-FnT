@@ -49,19 +49,14 @@ const gradeColors: Record<string, string> = {
 };
 
 export default function EmployeeGrades() {
-    const { data: grades = [], isLoading: gradesLoading } = useGrades();
-    const { data: skills = [], isLoading: skillsLoading } = useSkills();
-    const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
-    const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
-    const { data: users = [], isLoading: usersLoading } = useUsers();
-    const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
-    const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
-    console.log("aa", profileUsers)
-    //const { data: technologySkills = [] } = useTechnologySkills();
-    const { data: technologyProfiles = [] } = useTechnologyProfiles();
-    const { data: technologyProfilesbyprofileid = [] } = useTechnologyProfilesbyprofileid();
-    const { data: technologies = [], isLoading: technologyloading } = useTechnologies();
-    const { insertUpdate } = useSkillMapMutation();
+  const { data: grades = [], isLoading: gradesLoading } = useGrades();
+  const { data: skills = [], isLoading: skillsLoading } = useSkills();
+  const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
+  const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
+  const { data: users = [], isLoading: usersLoading } = useUsers();
+  const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
+  const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
+  const { insertUpdate } = useSkillMapMutation();
 
     const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
         usersLoading || skillMapsLoading || profileUsersLoading;
@@ -71,123 +66,38 @@ export default function EmployeeGrades() {
     const [hasChanges, setHasChanges] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
-    const selectedUser = users.find(u => u.id === selectedUserId);
-    const { data: useSkillMapsByUserdata = [], isLoading: useSkillMapsByUserLoading } = useSkillMapsByUser(selectedUserId);
+  const selectedUser = users.find(u => u.id === selectedUserId);
+  const userProfile = profileUsers.find(pu => pu.userId === selectedUserId);
+  const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
 
-    //matrix
-    const { data: userSkills = [], isLoading: skillsforuserLoading, refetch:fetchskill } = useSkillByUser(selectedUserId);
-    const { data: userSubSkills = [], isLoading: subskillsforuserLoading, refetch: fetchSubskill } = useSubSkillByUser(selectedUserId);
-    const { data: userTechnology = [], isLoading: technologyforuserLoading, refetch: fetchtechnology } = useTechnologyByUser(selectedUserId);
-    const { data: technologySkills = [], isLoading: technologySkillsisloading, refetch: fetchtechnologyskill } = useTechnologyskillByUser(selectedUserId);
+  const userSkillMaps = useMemo(() => 
+    skillMaps.filter(sm => sm.userId === selectedUserId),
+    [skillMaps, selectedUserId]
+  );
 
-    //console.log("a", profileUsers);
-    const userProfile = profileUsers.find(pu => pu.userId === selectedUserId);
+  const skillsWithSubskills = useMemo(() => 
+    skills.filter(s => s.isactive).map(skill => ({
+      ...skill,
+      subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
+    })),
+    [skills, subskills]
+  );
 
-    //console.log("selectedUserId", selectedUserId);
-    //console.log("userSkills", userSkills);
-    //console.log("userSubSkills", userSubSkills);
-    //console.log("userTechnology", userTechnology);
-    const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
-    //console.log("profile", profile);
+  const getGradeForSubskill = (subskillId: number) => {
+    // Check pending changes first
+    if (pendingChanges.has(subskillId)) {
+      return pendingChanges.get(subskillId) || 0;
+    }
+    const mapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
+    return mapping?.gradeid || 0;
+  };
 
-    /*
-    User-ID-->ProfileUser-->TechnologyProfile-->TechnologySKill--->Skill-->Subskill
-    */
-
-    // Get technologies for user's profile (hierarchical: User → Profile → Technologies)
-   // console.log("technologyProfiles", technologyProfiles);
-    const techIds = useMemo(() => {
-        if (!userProfile?.profileId) return [];
-
-       else return technologyProfiles
-            .filter(tp => tp.profileId === userProfile.profileId)
-        .map(tp => tp.technologyId)
-    }, [technologyProfiles, technologies, userProfile]);
-
-    //const userTechnologies = useMemo(() => {
-    //    if (!userProfile) return [];
-        
-    //    console.log("techIds", techIds)
-    //    return technologies.filter(t => techIds.includes(t.id) && t.isactive);
-    //}, [technologyProfiles, technologies, userProfile]);
-    ////console.log("userTechnologies", userTechnologies)//------>Technologies which are mapped to User Id
-
-    //console.log("technologySkills", technologySkills);
-    const userTechnologiesskill = useMemo(() => {
-        if (!userProfile) return [];
-        return technologySkills.filter(t => techIds.includes(t.technologyId) && t.isactive);
-    }, [technologyProfiles, technologySkills, userProfile]);
-    //console.log("usertechnologySkills", userTechnologiesskill)
-
-    //need to get the subksill list based on the userid and technologid 
-    // Calculate total subskills for all assigned technologies
-    const totalSubskills = useMemo(() => {
-        const techSkillIds = technologySkills
-            .filter(ts => userTechnology.some(t => t.id == ts.technologyId))
-            .map(ts => ts.skillId);
-
-        return subskills.filter(ss =>
-            techSkillIds.includes(ss.skillId) && ss.isactive
-        ).length;
-    }, [technologySkills, userTechnology, subskills]);
-
-
-    const userSkillMaps = useMemo(() =>
-        useSkillMapsByUserdata,//.filter(sm => sm.userId === selectedUserId),
-        [useSkillMapsByUserdata, selectedUserId]
-    );
-    console.log("userSkillMaps", userSkillMaps)
-    //console.log("Skills", skills);
-
-
-    const skillsWithSubskillsall = useMemo(() =>
-        skills.filter(s => s.isactive).map(skill => ({
-            ...skill,
-            subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
-        })),
-        [skills, subskills]
-    );
-    const skillsWithSubskills = useMemo(() =>
-        skills.filter(s => s.isactive).map(skill => ({
-            ...skill,
-            subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
-        })),
-        [skills, subskills]
-    );
-    //console.log("skillsWithSubskills", skillsWithSubskills)
-
-
-    const getGradeForSubskill = (subskillId: number) => {
-        // Check pending changes first
-        if (pendingChanges.has(subskillId)) {
-            return pendingChanges.get(subskillId) || 0;
-        }
-        //console.log(pendingChanges)
-        const mapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
-        //console.log(mapping)
-        return mapping?.gradeId || 0;
-    };
-    console.log(userSkillMaps)
-    const skillsWithGrades = useMemo(() => {
-        return skillsWithSubskillsall.map(skill => ({
-            ...skill,
-            subskills: skill.subskills.map(subskill => {
-                const subskillGrade = useSkillMapsByUserdata.find(usm => usm.subskillId === subskill.id);
-                return {
-                    ...subskill,
-                    gradeId: subskillGrade?.gradeid || null
-                };
-            })
-        }));
-    }, [skillsWithSubskillsall, useSkillMapsByUserdata]);
-
-   // console.log("skillsWithGrades", skillsWithGrades);
-    const handleGradeChange = (subskillId: number, gradeId: number) => {
-        setHasChanges(true);
-        const newPendingChanges = new Map(pendingChanges);
-        newPendingChanges.set(subskillId, gradeId);
-        setPendingChanges(newPendingChanges);
-    };
+  const handleGradeChange = (subskillId: number, gradeId: number) => {
+    setHasChanges(true);
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(subskillId, gradeId);
+    setPendingChanges(newPendingChanges);
+  };
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -252,278 +162,207 @@ export default function EmployeeGrades() {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
 
-
-    const handleUserChange = (userId: number) => {
-        setSelectedUserId(userId);
-        setHasChanges(false);
-        setPendingChanges(new Map());
-        fetchskill()
-        fetchSubskill()
-        fetchtechnology()
-    };
-
-
-    //const selectedUser = users.find(u => u.id === selectedUserId);
-    const skillsGradedCount = userSkillMaps.length + pendingChanges.size;
-
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <Header
-                title="Employee Grades"
-                subtitle="Apply and manage competency grades for individual employees"
-            />
-
-            {/* Employee Selection */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <EmployeeSelector
-                    users={users}
-                    selectedUserId={selectedUserId}
-                    onUserChange={handleUserChange}
-                />
-
-                { (
-                    <div className=" grid gap-4 md:col-span-2">
-                        <GradeLegend grades={grades} />
-                    </div>
-                )}
-            </div>
-
-            {/* Employee Info and Stats */}
-            {selectedUser && (
-                <>
-                    <EmployeeInfoCard
-                        user={selectedUser}
-                        profile={profile}
-                        hasChanges={hasChanges}
-                        isSaving={isSaving}
-                        onSave={handleSave}
-                    />
-
-                    <StatusCards
-                        skillsGraded={skillsGradedCount}
-                        totalSkills={totalSubskills}
-                        averageGrade={calculateAverageGrade()}
-                        technologiesCount={userTechnology.length}
-                    />
-
-                    {/* Technology Tabs with Skills */}
-                    <TechnologyTabs
-                        technologies={userTechnology}
-                        technologySkills={userTechnologiesskill}
-                        skills={userSkills}
-                        subskills={userSubSkills}
-                        grades={grades}
-                        mappedsubskill={userSkillMaps}
-                        getGradeForSubskill={getGradeForSubskill}
-                        onGradeChange={handleGradeChange}
-                    />
-                </>
-            )}
+      <div className="space-y-6 p-6">
+        <Header title="Employee Grades" subtitle="Apply and manage competency grades for individual employees" />
+        <div className="grid gap-4 md:grid-cols-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
         </div>
+        <Skeleton className="h-64" />
+      </div>
     );
+  }
 
+  return (
+    <div className="space-y-6">
+      <Header 
+        title="Employee Grades" 
+        subtitle="Apply and manage competency grades for individual employees"
+      />
 
-    //if (isLoading) {
-    //    return (
-    //        <div className="space-y-6 p-6">
-    //            <Header title="Employee Grades" subtitle="Apply and manage competency grades for individual employees" />
-    //            <div className="grid gap-4 md:grid-cols-4">
-    //                <Skeleton className="h-32" />
-    //                <Skeleton className="h-32" />
-    //                <Skeleton className="h-32" />
-    //                <Skeleton className="h-32" />
-    //            </div>
-    //            <Skeleton className="h-64" />
-    //        </div>
-    //    );
-    //}
+      {/* Employee Selection and Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="md:col-span-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Select Employee</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select 
+              value={selectedUserId.toString()} 
+              onValueChange={(v) => {
+                setSelectedUserId(parseInt(v));
+                setHasChanges(false);
+                setPendingChanges(new Map());
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select an employee" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.filter(u => u.isactive).map(user => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      {user.name} - {user.department}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
-    //    return (
-    //        <div className="space-y-6">
-    //            <Header
-    //                title="Employee Grades"
-    //                subtitle="Apply and manage competency grades for individual employees"
-    //            />
+        {selectedUser && (
+          <>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Award className="w-4 h-4" />
+                  Skills Graded
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{userSkillMaps.length + pendingChanges.size}</div>
+                <Progress value={calculateProgress()} className="mt-2 h-2" />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {calculateProgress().toFixed(0)}% complete
+                </p>
+              </CardContent>
+            </Card>
 
-    //            {/* Employee Selection and Stats */}
-    //            <div className="grid gap-4 md:grid-cols-4">
-    //                <Card className="md:col-span-2">
-    //                    <CardHeader className="pb-3">
-    //                        <CardTitle className="text-base">Select Employee</CardTitle>
-    //                    </CardHeader>
-    //                    <CardContent>
-    //                        <Select
-    //                            value={selectedUserId.toString()}
-    //                            onValueChange={(v) => {
-    //                                setSelectedUserId(parseInt(v));
-    //                                setHasChanges(false);
-    //                                setPendingChanges(new Map());
-    //                            }}
-    //                        >
-    //                            <SelectTrigger className="w-full">
-    //                                <SelectValue placeholder="Select an employee" />
-    //                            </SelectTrigger>
-    //                            <SelectContent>
-    //                                {users.map(user => (
-    //                                    <SelectItem key={user.id} value={user.id.toString()}>
-    //                                        <div className="flex items-center gap-2">
-    //                                            <User className="w-4 h-4" />
-    //                                            {user.name}
-    //                                        </div>
-    //                                    </SelectItem>
-    //                                ))}
-    //                            </SelectContent>
-    //                        </Select>
-    //                    </CardContent>
-    //                </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4" />
+                  Average Grade
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">L{calculateAverageGrade()}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Based on {userSkillMaps.length + pendingChanges.size} skills
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
 
-    //                {selectedUser && (
-    //                    <>
-    //                        <Card>
-    //                            <CardHeader className="pb-3">
-    //                                <CardTitle className="text-base flex items-center gap-2">
-    //                                    <Award className="w-4 h-4" />
-    //                                    Skills Graded
-    //                                </CardTitle>
-    //                            </CardHeader>
-    //                            <CardContent>
-    //                                <div className="text-2xl font-bold">{userSkillMaps.length + pendingChanges.size}</div>
-    //                                <Progress value={calculateProgress()} className="mt-2 h-2" />
-    //                                <p className="text-xs text-muted-foreground mt-1">
-    //                                    {calculateProgress().toFixed(0)}% complete
-    //                                </p>
-    //                            </CardContent>
-    //                        </Card>
+      {/* Employee Info Card */}
+      {selectedUser && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                    {getInitials(selectedUser.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <CardTitle>{selectedUser.name}</CardTitle>
+                  <CardDescription>{selectedUser.email}</CardDescription>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="outline">{selectedUser.department}</Badge>
+                    {profile && <Badge>{profile.title}</Badge>}
+                  </div>
+                </div>
+              </div>
+              <Button onClick={handleSave} disabled={!hasChanges || insertUpdate.isPending}>
+                <Save className="w-4 h-4 mr-2" />
+                {insertUpdate.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </CardHeader>
+        </Card>
+      )}
 
-    //                        <Card>
-    //                            <CardHeader className="pb-3">
-    //                                <CardTitle className="text-base flex items-center gap-2">
-    //                                    <TrendingUp className="w-4 h-4" />
-    //                                    Average Grade
-    //                                </CardTitle>
-    //                            </CardHeader>
-    //                            <CardContent>
-    //                                <div className="text-2xl font-bold">L{calculateAverageGrade()}</div>
-    //                                <p className="text-xs text-muted-foreground mt-1">
-    //                                    Based on {userSkillMaps.length + pendingChanges.size} skills
-    //                                </p>
-    //                            </CardContent>
-    //                        </Card>
-    //                    </>
-    //                )}
-    //            </div>
+      {/* Grade Legend */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Grade Legend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            {grades.filter(g => g.isactive).map(grade => (
+              <div key={grade.id} className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded ${gradeColors[grade.gradelevel || '']}`} />
+                <span className="text-sm font-medium">{grade.gradelevel}</span>
+                <span className="text-sm text-muted-foreground">- {grade.title}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-    //            {/* Employee Info Card */}
-    //            {selectedUser && (
-    //                <Card>
-    //                    <CardHeader>
-    //                        <div className="flex items-center justify-between">
-    //                            <div className="flex items-center gap-4">
-    //                                <Avatar className="h-16 w-16">
-    //                                    <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-    //                                        {getInitials(selectedUser.name)}
-    //                                    </AvatarFallback>
-    //                                </Avatar>
-    //                                <div>
-    //                                    <CardTitle>{selectedUser.name}</CardTitle>
-    //                                    <CardDescription>{selectedUser.email}</CardDescription>
-    //                                    <div className="flex gap-2 mt-2">
-    //                                        <Badge variant="outline">{selectedUser.department}</Badge>
-    //                                        {profile && <Badge>{profile.title}</Badge>}
-    //                                    </div>
-    //                                </div>
-    //                            </div>
-    //                            <Button onClick={handleSave} disabled={!hasChanges || insertUpdate.isPending}>
-    //                                <Save className="w-4 h-4 mr-2" />
-    //                                {insertUpdate.isPending ? 'Saving...' : 'Save Changes'}
-    //                            </Button>
-    //                        </div>
-    //                    </CardHeader>
-    //                </Card>
-    //            )}
-
-    //            {/* Grade Legend */}
-    //            <Card>
-    //                <CardHeader className="pb-3">
-    //                    <CardTitle className="text-base">Grade Legend</CardTitle>
-    //                </CardHeader>
-    //                <CardContent>
-    //                    <div className="flex flex-wrap gap-3">
-    //                        {grades.filter(g => g.isactive).map(grade => (
-    //                            <div key={grade.id} className="flex items-center gap-2">
-    //                                <div className={`w-4 h-4 rounded ${gradeColors[grade.gradelevel || '']}`} />
-    //                                <span className="text-sm font-medium">{grade.gradelevel}</span>
-    //                                <span className="text-sm text-muted-foreground">- {grade.title}</span>
-    //                            </div>
-    //                        ))}
-    //                    </div>
-    //                </CardContent>
-    //            </Card>
-
-    //            {/* Skills Grid */}
-    //            {selectedUser && (
-    //                <div className="space-y-4">
-    //                    {skillsWithSubskills.map(skill => (
-    //                        <Card key={skill.id}>
-    //                            <CardHeader className="pb-3">
-    //                                <CardTitle className="text-base">{skill.title}</CardTitle>
-    //                                <CardDescription>
-    //                                    {skill.subskills.length} sub-skills
-    //                                </CardDescription>
-    //                            </CardHeader>
-    //                            <CardContent>
-    //                                <Table>
-    //                                    <TableHeader>
-    //                                        <TableRow>
-    //                                            <TableHead>Sub-skill</TableHead>
-    //                                            <TableHead>Current Grade</TableHead>
-    //                                            <TableHead>Select Grade</TableHead>
-    //                                        </TableRow>
-    //                                    </TableHeader>
-    //                                    <TableBody>
-    //                                        {skill.subskills.map(subskill => {
-    //                                            const currentGradeId = getGradeForSubskill(subskill.id);
-    //                                            const currentGrade = grades.find(g => g.id === currentGradeId);
-    //                                            return (
-    //                                                <TableRow key={subskill.id}>
-    //                                                    <TableCell className="font-medium">{subskill.title}</TableCell>
-    //                                                    <TableCell>
-    //                                                        {currentGrade ? (
-    //                                                            <Badge className={gradeColors[currentGrade.gradelevel || '']}>
-    //                                                                {currentGrade.gradelevel} - {currentGrade.title}
-    //                                                            </Badge>
-    //                                                        ) : (
-    //                                                            <span className="text-muted-foreground">Not graded</span>
-    //                                                        )}
-    //                                                    </TableCell>
-    //                                                    <TableCell>
-    //                                                        <Select
-    //                                                            value={currentGradeId.toString()}
-    //                                                            onValueChange={(v) => handleGradeChange(subskill.id, parseInt(v))}
-    //                                                        >
-    //                                                            <SelectTrigger className="w-[180px]">
-    //                                                                <SelectValue placeholder="Select grade" />
-    //                                                            </SelectTrigger>
-    //                                                            <SelectContent>
-    //                                                                <SelectItem value="0">Not graded</SelectItem>
-    //                                                                {grades.filter(g => g.isactive).map(grade => (
-    //                                                                    <SelectItem key={grade.id} value={grade.id.toString()}>
-    //                                                                        {grade.gradelevel} - {grade.title}
-    //                                                                    </SelectItem>
-    //                                                                ))}
-    //                                                            </SelectContent>
-    //                                                        </Select>
-    //                                                    </TableCell>
-    //                                                </TableRow>
-    //                                            );
-    //                                        })}
-    //                                    </TableBody>
-    //                                </Table>
-    //                            </CardContent>
-    //                        </Card>
-    //                    ))}
-    //                </div>
-    //            )}
-    //        </div>
-    //    );
+      {/* Skills Grid */}
+      {selectedUser && (
+        <div className="space-y-4">
+          {skillsWithSubskills.map(skill => (
+            <Card key={skill.id}>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{skill.title}</CardTitle>
+                <CardDescription>
+                  {skill.subskills.length} sub-skills
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Sub-skill</TableHead>
+                      <TableHead>Current Grade</TableHead>
+                      <TableHead>Select Grade</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {skill.subskills.map(subskill => {
+                      const currentGradeId = getGradeForSubskill(subskill.id);
+                      const currentGrade = grades.find(g => g.id === currentGradeId);
+                      return (
+                        <TableRow key={subskill.id}>
+                          <TableCell className="font-medium">{subskill.title}</TableCell>
+                          <TableCell>
+                            {currentGrade ? (
+                              <Badge className={gradeColors[currentGrade.gradelevel || '']}>
+                                {currentGrade.gradelevel} - {currentGrade.title}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">Not graded</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Select 
+                              value={currentGradeId.toString()}
+                              onValueChange={(v) => handleGradeChange(subskill.id, parseInt(v))}
+                            >
+                              <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select grade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="0">Not graded</SelectItem>
+                                {grades.filter(g => g.isactive).map(grade => (
+                                  <SelectItem key={grade.id} value={grade.id.toString()}>
+                                    {grade.gradelevel} - {grade.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
