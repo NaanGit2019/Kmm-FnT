@@ -33,6 +33,7 @@ interface DataTableProps<T> {
   onDelete?: (item: T) => void;
   title?: string;
   addLabel?: string;
+  headerActions?: ReactNode;
 }
 
 export function DataTable<T extends { id: number }>({
@@ -44,6 +45,7 @@ export function DataTable<T extends { id: number }>({
   onDelete,
   title,
   addLabel = 'Add New',
+  headerActions,
 }: DataTableProps<T>) {
   const [search, setSearch] = useState('');
 
@@ -60,28 +62,38 @@ export function DataTable<T extends { id: number }>({
   return (
     <div className="bg-card rounded-xl border border-border animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-4 border-b border-border">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-3 py-1 gap-3 border-b border-border">
         {title && <h3 className="text-lg font-semibold text-foreground">{title}</h3>}
         
-        <div className="flex items-center gap-3 flex-1 sm:flex-none">
-          {searchKey && (
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          )}
-          {onAdd && (
-            <Button onClick={onAdd} className="shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
-              {addLabel}
-            </Button>
-          )}
-        </div>
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-4 ">
+
+
+  <div className="flex items-center gap-3 ml-auto flex-wrap">
+    
+    {searchKey && (
+      <div className="relative w-52">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 h-9"
+        />
+      </div>
+    )}
+    
+    {headerActions}
+
+
+    {onAdd && (
+      <Button onClick={onAdd} size="sm">
+        <Plus className="w-4 h-4 mr-2" />
+        {addLabel}
+      </Button>
+    )}
+  </div>
+</div>
+
       </div>
 
       {/* Table */}

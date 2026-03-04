@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
 import { useProfiles, useProfileMutation } from '@/hooks/useApi';
+import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import type { Profile } from '@/types';
 import {
   Dialog,
@@ -26,6 +27,13 @@ export default function Profiles() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [deletingProfile, setDeletingProfile] = useState<Profile | null>(null);
+  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive'>('active');
+
+  const filterByStatus = (items: Profile[], filter:'active' | 'inactive'): Profile[] => {
+    if (filter === 'active') return items.filter(item => item.isactive);
+    if (filter === 'inactive') return items.filter(item => !item.isactive);
+    return items;
+  };
   
   const [formData, setFormData] = useState({
     title: '',
@@ -33,7 +41,7 @@ export default function Profiles() {
   });
 
   const columns: Column<Profile>[] = [
-    { key: 'id', header: 'ID' },
+    // { key: 'id', header: 'ID' },
     { 
       key: 'title', 
       header: 'Title',
@@ -125,15 +133,29 @@ export default function Profiles() {
             <Skeleton className="h-64 w-full" />
           </div>
         ) : (
-          <DataTable
-            data={profiles}
-            columns={columns}
-            searchKey="title"
-            onAdd={handleAdd}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            addLabel="Add Profile"
-          />
+          <div className="bg-card rounded-xl border border-border animate-fade-in">
+          
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <DataTable
+  title="Profiles"
+  searchKey="title"
+  data={filterByStatus(profiles, statusFilter)}
+  columns={columns}
+  onAdd={handleAdd}
+  addLabel="Add Profile"
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+  headerActions={
+    <ActiveInactiveSelector
+      value={statusFilter}
+      onChange={setStatusFilter}
+    />
+  }
+/>
+            </div>
+          </div>
         )}
       </div>
 

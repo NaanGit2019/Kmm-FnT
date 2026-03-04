@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import cherryBg from '@/assets/cherry-blossom-bg.jpg';
+import { set } from 'date-fns';
 
 // Floating petal component
 function FloatingPetal({ delay, left, size }: { delay: number; left: string; size: number }) {
@@ -45,12 +46,50 @@ export default function Login() {
     }
     setIsLoading(true);
     // Mock login
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success(`Welcome back, ${username}!`);
-      navigate('/');
-    }, 800);
+    // setTimeout(() => {
+    //  setIsLoading(false);
+    //toast.success(`Welcome back, ${username}!`);
+    //navigate('/');
+    // }, 800);
+    try {
+      const response = await fetch("https://ngo-userauth-dev-api.saldobooks.com/user/signin/",
+        {
+          method: "POST",
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            application_id: [3],
+            device_type_id: 2,
+            username: username,
+            password: password
+          })
+        }
+      );
+
+      const data = await response.json();
+      console.log("Login Response:", data);
+      if (response.ok) {
+        const token = data.access_token || data.token;
+        if (!token) {
+          toast.error('Token not found in response');
+          setIsLoading(false);
+        }
+        localStorage.setItem('token', token);
+        toast.success(`Login successful!`);
+        navigate('/');
+      } else {
+        toast.error(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('something went wrong');
+    }
+    setIsLoading(false);
   };
+
+  // Adjust based on actual response structure);
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
