@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/Header';
 import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Cpu, Layers, Users, Award, TrendingUp, Activity } from 'lucide-react';
-import { useTechnology, useSkills, useProfiles, useGrades } from '@/hooks/useApi';
+import { useTechnology, useSkills, useProfiles, useGrades, useTechnologyTypes } from '@/hooks/useApi';
 import {
   BarChart,
   Bar,
@@ -14,7 +14,8 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend
+  Legend,
+  Label
 } from 'recharts';
 import { useMemo } from 'react';
 
@@ -29,19 +30,22 @@ const CHART_COLORS = [
 
 export default function Dashboard() {
   const { data: technologies = [], isLoading: techLoading } = useTechnology();
+  const { data: technologyTypes = [], isLoading: typesLoading } = useTechnologyTypes();
   const { data: skills = [], isLoading: skillsLoading } = useSkills();
   const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
   const { data: grades = [], isLoading: gradesLoading } = useGrades();
 
-  const isLoading = techLoading || skillsLoading || profilesLoading || gradesLoading;
+  const isLoading = techLoading || typesLoading || skillsLoading || profilesLoading || gradesLoading;
 
-  const technologyTypeData = useMemo(() => [
-    { name: 'Frontend', count: technologies.filter(t => t.type === 'Frontend').length },
-    { name: 'Backend', count: technologies.filter(t => t.type === 'Backend').length },
-    { name: 'Database', count: technologies.filter(t => t.type === 'Database').length },
-    { name: 'Cloud', count: technologies.filter(t => t.type === 'Cloud').length },
-    { name: 'DevOps', count: technologies.filter(t => t.type === 'DevOps').length },
-  ], [technologies]);
+  const technologyTypeData = useMemo(() => {
+    return technologyTypes.map((typeObj: { id: number; name: string } | string) => {
+      const typeName = typeof typeObj === 'string' ? typeObj : typeObj.name;
+      return {
+        name: typeName,
+        count: technologies.filter(t => t.type === typeName).length,
+      };
+    })
+  }, [technologies, technologyTypes]);
 
   const skillDistribution = useMemo(() => {
     return skills.slice(0, 6).map(skill => ({
@@ -117,19 +121,44 @@ export default function Dashboard() {
               </div>
               <Activity className="w-5 h-5 text-muted-foreground" />
             </div>
-            <div className="h-[300px]">
+            <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={technologyTypeData}>
+                <BarChart
+                  data={technologyTypeData}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 80 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="name"
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
-                  />
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                  >
+                    <Label
+                      value="Technology Type"
+                      position="centerBottom"
+                      dy={15}
+                      offset={-10}
+                      fill="hsl(var(--foreground))"
+                      fontSize={12}
+                      fontWeight={500}
+                    />
+                  </XAxis>
                   <YAxis
                     stroke="hsl(var(--muted-foreground))"
                     fontSize={12}
-                  />
+                  >
+                    <Label
+                      value="Count"
+                      angle={-90}
+                      position="insideLeft"
+                      fill="hsl(var(--foreground))"
+                      fontSize={12}
+                      fontWeight={500}
+                    />
+                  </YAxis>
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'hsl(var(--card))',
