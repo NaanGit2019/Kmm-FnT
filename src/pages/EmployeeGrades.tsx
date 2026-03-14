@@ -56,7 +56,7 @@ export default function EmployeeGrades() {
     const { data: users = [], isLoading: usersLoading } = useUsers();
     const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
     const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
-    console.log("aa", profileUsers)
+    //console.log("aa", profileUsers)
     //const { data: technologySkills = [] } = useTechnologySkills();
     const { data: technologyProfiles = [] } = useTechnologyProfiles();
     const { data: technologyProfilesbyprofileid = [] } = useTechnologyProfilesbyprofileid();
@@ -81,43 +81,45 @@ export default function EmployeeGrades() {
     const { data: technologySkills = [], isLoading: technologySkillsisloading, refetch: fetchtechnologyskill } = useTechnologyskillByUser(selectedUserId);
 
     //console.log("a", profileUsers);
-    const userProfile = profileUsers.find(pu => pu.userId === selectedUserId);
+    const userProfile = profileUsers.filter(pu => pu.userId === selectedUserId);
 
     //console.log("selectedUserId", selectedUserId);
     //console.log("userSkills", userSkills);
     //console.log("userSubSkills", userSubSkills);
     //console.log("userTechnology", userTechnology);
-    const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
-    //console.log("profile", profile);
+    const profileIds = userProfile.map(up => up.profileId);
+
+    const profile = userProfile ? profiles.filter(p => profileIds.includes(p.id)) : null;
+    console.log("profile", profile);
 
     /*
     User-ID-->ProfileUser-->TechnologyProfile-->TechnologySKill--->Skill-->Subskill
     */
 
     // Get technologies for user's profile (hierarchical: User → Profile → Technologies)
-   // console.log("technologyProfiles", technologyProfiles);
+    //console.log("technologyProfiles", technologyProfilesbyprofileid);
     const techIds = useMemo(() => {
-        if (!userProfile?.profileId) return [];
+        if (!profileIds) return [];
 
-       else return technologyProfiles
-            .filter(tp => tp.profileId === userProfile.profileId)
+        else return technologyProfilesbyprofileid
+            .filter(tp => profileIds.includes(tp.profileId))
         .map(tp => tp.technologyId)
-    }, [technologyProfiles, technologies, userProfile]);
+    }, [technologyProfilesbyprofileid, technologies, userProfile]);
 
     //const userTechnologies = useMemo(() => {
     //    if (!userProfile) return [];
         
-    //    console.log("techIds", techIds)
+        //console.log("techIds", techIds)
     //    return technologies.filter(t => techIds.includes(t.id) && t.isactive);
     //}, [technologyProfiles, technologies, userProfile]);
-    ////console.log("userTechnologies", userTechnologies)//------>Technologies which are mapped to User Id
+    //////console.log("userTechnologies", userTechnologies)//------>Technologies which are mapped to User Id
 
     //console.log("technologySkills", technologySkills);
     const userTechnologiesskill = useMemo(() => {
         if (!userProfile) return [];
         return technologySkills.filter(t => techIds.includes(t.technologyId) && t.isactive);
     }, [technologyProfiles, technologySkills, userProfile]);
-    //console.log("usertechnologySkills", userTechnologiesskill)
+    ////console.log("usertechnologySkills", userTechnologiesskill)
 
     //need to get the subksill list based on the userid and technologid 
     // Calculate total subskills for all assigned technologies
@@ -136,8 +138,8 @@ export default function EmployeeGrades() {
         useSkillMapsByUserdata,//.filter(sm => sm.userId === selectedUserId),
         [useSkillMapsByUserdata, selectedUserId]
     );
-    console.log("userSkillMaps", userSkillMaps)
-    //console.log("Skills", skills);
+    //console.log("userSkillMaps", userSkillMaps)
+    ////console.log("Skills", skills);
 
 
     const skillsWithSubskillsall = useMemo(() =>
@@ -154,7 +156,7 @@ export default function EmployeeGrades() {
         })),
         [skills, subskills]
     );
-    //console.log("skillsWithSubskills", skillsWithSubskills)
+    ////console.log("skillsWithSubskills", skillsWithSubskills)
 
 
     const getGradeForSubskill = (subskillId: number) => {
@@ -181,7 +183,7 @@ export default function EmployeeGrades() {
         }));
     }, [skillsWithSubskillsall, useSkillMapsByUserdata]);
 
-   // console.log("skillsWithGrades", skillsWithGrades);
+   // //console.log("skillsWithGrades", skillsWithGrades);
     const handleGradeChange = (subskillId: number, gradeId: number) => {
         setHasChanges(true);
         const newPendingChanges = new Map(pendingChanges);

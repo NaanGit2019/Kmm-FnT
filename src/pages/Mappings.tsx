@@ -48,8 +48,8 @@ export default function Mappings() {
   const [newTechSkill, setNewTechSkill] = useState({ technologyId: 0, skillId: 0 });
 
   const [showProfileUserDialog, setShowProfileUserDialog] = useState(false);
-  const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0 });
-
+    const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0 });
+    console.log(technologies,"tech")
   const getTechnology = (id: number) => technologies.find(t => t.id === id);
   const getProfile = (id: number) => profiles.find(p => p.id === id);
   const getSkill = (id: number) => skills.find(s => s.id === id);
