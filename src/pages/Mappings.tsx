@@ -60,26 +60,8 @@ export default function Mappings() {
   const [editingTechSkill, setEditingTechSkill] = useState<MapTechnologySkill | null>(null);
 
   const [showProfileUserDialog, setShowProfileUserDialog] = useState(false);
-  const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0, isactive: true });
-  const [editingProfileUser, setEditingProfileUser] = useState<MapProfileUser | null>(null);
-
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteType, setDeleteType] = useState<'techProfile' | 'techSkill' | 'profileUser' | null>(null);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-
-  // Filter states
-  const [techProfileFilter, setTechProfileFilter] = useState<'active' | 'inactive'>('active');
-  const [techSkillFilter, setTechSkillFilter] = useState<'active' | 'inactive'>('active');
-  const [profileUserFilter, setProfileUserFilter] = useState<'active' | 'inactive'>('active');
-
-  // Filter function
-  const filterByStatus = <T extends { isactive?: boolean }>(items: T[], filter: 'active' | 'inactive'): T[] => {
-    if (filter === 'active') return items.filter(item => item.isactive === true);
-    if (filter === 'inactive') return items.filter(item => item.isactive === false);
-    return items;
-  };
-
+    const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0 });
+    console.log(technologies,"tech")
   const getTechnology = (id: number) => technologies.find(t => t.id === id);
   const getProfile = (id: number) => profiles.find(p => p.id === id);
   const getSkill = (id: number) => skills.find(s => s.id === id);
