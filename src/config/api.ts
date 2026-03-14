@@ -1,101 +1,84 @@
 // API Configuration - Update this to match your .NET backend URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7214/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:44320/api';
 
 export const API_ENDPOINTS = {
-    // Grades
-    grades: {
-        getAll: `${API_BASE_URL}/Grade/GetAllGrade`,
-        getById: (id: number) => `${API_BASE_URL}/Grade/GetGradebyId/${id}`,
-        insertUpdate: `${API_BASE_URL}/Grade/insertupadateGrade`,
-        delete: (id: number) => `${API_BASE_URL}/Grade/deleteGrade/${id}`,
-    },
+  // Grades
+  grades: {
+    getAll: `${API_BASE_URL}/Grade/GetAllGrade`,
+    getById: (id: number) => `${API_BASE_URL}/Grade/GetGradebyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Grade/insertupadateGrade`,
+    delete: (id: number) => `${API_BASE_URL}/Grade/deleteGrade/${id}`,
+  },
 
-    // Profiles
-    profiles: {
-        getAll: `${API_BASE_URL}/Profile/GetAllProfile`,
-        getById: (id: number) => `${API_BASE_URL}/Profile/GetProfilebyId/${id}`,
-        insertUpdate: `${API_BASE_URL}/Profile/insertupadateProfile`,
-        delete: (id: number) => `${API_BASE_URL}/Profile/deleteProfile/${id}`,
-    },
+  // Profiles
+  profiles: {
+    getAll: `${API_BASE_URL}/Profile/GetAllProfile`,
+    getById: (id: number) => `${API_BASE_URL}/Profile/GetProfilebyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Profile/insertupadateProfile`,
+    delete: (id: number) => `${API_BASE_URL}/Profile/deleteProfile/${id}`,
+  },
 
-    // Technologies
-    technologies: {
-        getAll: `${API_BASE_URL}/Technology/GetAllTechnology`,
-        getById: (id: number) => `${API_BASE_URL}/Technology/GetTechnologybyId/${id}`,
-        insertUpdate: `${API_BASE_URL}/Technology/InsertUpdateTechnology`,
-        delete: (id: number) => `${API_BASE_URL}/Technology/deleteTechnology/${id}`,
-        getTypes: `${API_BASE_URL}/Technology/GetTechnologyTypes`,
-    },
+  // Technologies
+  technologies: {
+    getAll: `${API_BASE_URL}/Technology/GetAllTechnology`,
+    getById: (id: number) => `${API_BASE_URL}/Technology/GetTechnologybyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Technology/insertupadateTechnology`,
+    delete: (id: number) => `${API_BASE_URL}/Technology/deleteTechnology/${id}`,
+    getTechnologyTypes: `${API_BASE_URL}/Technology/GetTechnologyTypes`,
 
-    // Skills
-    skills: {
-        getAll: `${API_BASE_URL}/Skill/GetAllSkill`,
-        getById: (id: number) => `${API_BASE_URL}/Skill/GetSkillbyId/${id}`,
-        insertUpdate: `${API_BASE_URL}/Skill/insertupadateSkill`,
-        delete: (id: number) => `${API_BASE_URL}/Skill/deleteSkill/${id}`,
-    },
+  },
 
-    // Subskills
-    subskills: {
-        getAll: `${API_BASE_URL}/Subskill/GetAllSubskill`,
-        getById: (id: number) => `${API_BASE_URL}/Subskill/GetSubskillbyId/${id}`,
-        getBySkill: (skillId: number) => `${API_BASE_URL}/Subskill/GetSubskillsBySkillId/${skillId}`,
-        insertUpdate: `${API_BASE_URL}/Subskill/insertupadateSubskill`,
-        delete: (id: number) => `${API_BASE_URL}/Subskill/deleteSubskill/${id}`,
-    },
+  // Skills
+  skills: {
+    getAll: `${API_BASE_URL}/Skill/GetAllSkill`,
+    getById: (id: number) => `${API_BASE_URL}/Skill/GetSkillbyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Skill/insertupadateSkill`,
+    delete: (id: number) => `${API_BASE_URL}/Skill/deleteSkill/${id}`,
+  },
 
-    // Users
-    users: {
-        getAll: `${API_BASE_URL}/User/GetAllUsers`,
-        getById: (id: number) => `${API_BASE_URL}/User/GetUserbyId/${id}`,
-        insertUpdate: `${API_BASE_URL}/User/insertupadateUser`,
-        delete: (id: number) => `${API_BASE_URL}/User/deleteUser/${id}`,
-    },
+  // Subskills
+  subskills: {
+    getAll: `${API_BASE_URL}/Subskill/GetAllSubskill`,
+    getById: (id: number) => `${API_BASE_URL}/Subskill/GetSubskillbyId/${id}`,
+    getBySkill: (skillId: number) => `${API_BASE_URL}/Subskill/GetSubskillsBySkillId/${skillId}`,
+    insertUpdate: `${API_BASE_URL}/Subskill/insertupadateSubskill`,
+    delete: (id: number) => `${API_BASE_URL}/Subskill/deleteSubskill/${id}`,
+  },
 
-    // Skill Maps
-    skillMaps: {
-        getAll: `${API_BASE_URL}/MapSkillMap/GetAllMapSkillMap`,
-        getByUser: (userId: number) => `${API_BASE_URL}/MapSkillMap/GetMapSkillMapbyId/${userId}`,
-        insertUpdate: `${API_BASE_URL}/MapSkillMap/insertupdateMapSkillMap`,
-        delete: (id: number) => `${API_BASE_URL}/MapSkillMap/deleteMapSkillMap/${id}`,
-    },
+  // Users
+  users: {
+    getAll: `${API_BASE_URL}/User/GetAllUser`,
+    getById: (id: number) => `${API_BASE_URL}/User/GetUserbyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/User/insertupadateUser`,
+    delete: (id: number) => `${API_BASE_URL}/User/deleteUser/${id}`,
+  },
 
-    // Technology-Skill Mappings
-    technologySkills: {
-        getAll: `${API_BASE_URL}/MapToTechnologySkill/GetAllTechnologySkills`,
-        insertUpdate: `${API_BASE_URL}/MapToTechnologySkill/insertupdateTechnologySkill`,
-        delete: (id: number) => `${API_BASE_URL}/MapToTechnologySkill/deleteTechnologySkill/${id}`,
-    },
+  // Skill Maps
+  skillMaps: {
+    getAll: `${API_BASE_URL}/SkillMap/GetAllSkillMap`,
+    getByUser: (userId: number) => `${API_BASE_URL}/SkillMap/GetSkillMapsByUserId/${userId}`,
+    insertUpdate: `${API_BASE_URL}/SkillMap/insertupadateSkillMap`,
+    delete: (id: number) => `${API_BASE_URL}/SkillMap/deleteSkillMap/${id}`,
+  },
 
-    // Technology-Profile Mappings
-    technologyProfiles: {
-        getAll: `${API_BASE_URL}/MapTechnologyProfile/GetAllMapTechnologyProfile`,
-        getByprofile: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/GetMapTechnologyProfilebyId/${id}`,
-        insertUpdate: `${API_BASE_URL}/MapTechnologyProfile/InsertUpdateMapTechnologyProfile`,
-        delete: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/DeleteMapTechnologyProfile/${id}`,
-    },
+  // Technology-Skill Mappings
+  technologySkills: {
+    getAll: `${API_BASE_URL}/TechnologySkill/GetAllTechnologySkill`,
+    insertUpdate: `${API_BASE_URL}/TechnologySkill/insertupadateTechnologySkill`,
+    delete: (id: number) => `${API_BASE_URL}/TechnologySkill/deleteTechnologySkill/${id}`,
+  },
 
-    // Profile-User Mappings
-    profileUsers: {
-        getAll: `${API_BASE_URL}/MapToProfileUser/GetAllProfileUser`,
-        getByUser: (userId: number) => `${API_BASE_URL}/MapToProfileUser/GetPofileUserById/${userId}`,
-        insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
-        delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
-    },
-    // Profile-User Mappings
-    mappedskillforuser: {
-        getAll: `${API_BASE_URL}/MapSkillMap/GetAllMappedSkillbyUser`,
-        getByUser: (userId: number) => `${API_BASE_URL}/MapSkillMap/GetAllMappedSkillbyUser/${userId}`,
-        insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
-        delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
-    },
+  // Technology-Profile Mappings
+  technologyProfiles: {
+    getAll: `${API_BASE_URL}/TechnologyProfile/GetAllTechnologyProfile`,
+    insertUpdate: `${API_BASE_URL}/TechnologyProfile/insertupadateTechnologyProfile`,
+    delete: (id: number) => `${API_BASE_URL}/TechnologyProfile/deleteTechnologyProfile/${id}`,
+  },
 
-    // matrix
-    matrix: {
-        getskillbyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllSkillforuser/${userId}`,
-        getsubskillbyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllsubSkillforuser/${userId}`,
-        gettechnologybyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllTechnologyforuser/${userId}`,
-        gettechnologyskillbyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllTechnologyskillforuser/${userId}`,
-        delete: (id: number) => `${API_BASE_URL}/Matrix/DeleteProfileUser/${id}`,
-    },
+  // Profile-User Mappings
+  profileUsers: {
+    getAll: `${API_BASE_URL}/ProfileUser/GetAllProfileUser`,
+    insertUpdate: `${API_BASE_URL}/ProfileUser/insertupadateProfileUser`,
+    delete: (id: number) => `${API_BASE_URL}/ProfileUser/deleteProfileUser/${id}`,
+  },
 };

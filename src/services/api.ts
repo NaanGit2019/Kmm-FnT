@@ -9,7 +9,7 @@ import type {
     MapSkillmap,
     MapTechnologySkill,
     MapTechnologyProfile,
-    MapProfileUser,
+    MapProfileUser
 } from '@/types';
 import type { User } from '@/types/user';
 
@@ -24,11 +24,10 @@ const apiClient = axios.create({
 // Request interceptor for adding auth tokens, logging, etc.
 apiClient.interceptors.request.use(
     (config) => {
-        // You can add auth token here if needed
-        // const token = localStorage.getItem('token');
-        // if (token) {
-        //   config.headers.Authorization = `Bearer ${token}`;
-        // }
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {
@@ -127,7 +126,6 @@ export const technologySkillApi = {
 // Technology-Profile Mapping API
 export const technologyProfileApi = {
     getAll: () => apiClient.get<MapTechnologyProfile[]>(API_ENDPOINTS.technologyProfiles.getAll).then(res => res.data),
-    getByprofile: (ID: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.technologyProfiles.getByprofile(ID)).then(res => res.data),
     insertUpdate: (data: MapTechnologyProfile) => apiClient.post<MapTechnologyProfile>(API_ENDPOINTS.technologyProfiles.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.technologyProfiles.delete(id)).then(res => res.data),
 };
@@ -142,7 +140,7 @@ export const profileUserApi = {
 
 // Profile-User Mapping API
 export const mappedskillforuserApi = {
-   // getAll: () => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getAll).then(res => res.data),
+    // getAll: () => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getAll).then(res => res.data),
     getByUser: (userId: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.mappedskillforuser.getByUser(userId)).then(res => res.data),
     //insertUpdate: (data: MapProfileUser) => apiClient.post<MapProfileUser>(API_ENDPOINTS.profileUsers.insertUpdate, data).then(res => res.data),
     //delete: (id: number) => apiClient.delete(API_ENDPOINTS.profileUsers.delete(id)).then(res => res.data),
