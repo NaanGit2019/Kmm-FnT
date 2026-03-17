@@ -12,6 +12,7 @@ import type {
     MapProfileUser
 } from '@/types';
 import type { User } from '@/types/user';
+import storage from '@/utils/storage';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -24,7 +25,7 @@ const apiClient = axios.create({
 // Request interceptor for adding auth tokens, logging, etc.
 apiClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
+        const token = storage.getItem('serviceToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }

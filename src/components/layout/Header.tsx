@@ -10,8 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '@/hooks/useAuth';
 
 interface HeaderProps {
   title: string;
@@ -19,11 +19,9 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const navigate = useNavigate();
+  const { logout } = useAuth();
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    toast.success('Logged out successfully');
-    navigate('/login');
+    logout();
   }
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-card border-b border-border">
