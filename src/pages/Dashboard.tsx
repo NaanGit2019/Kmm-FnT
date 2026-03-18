@@ -28,6 +28,7 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
+  console.log('Dashboard mounted');
   const { data: technologies = [], isLoading: techLoading } = useTechnology();
   const { data: skills = [], isLoading: skillsLoading } = useSkills();
   const { data: profiles = [], isLoading: profilesLoading } = useProfiles();

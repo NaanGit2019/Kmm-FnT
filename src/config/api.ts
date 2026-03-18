@@ -1,5 +1,5 @@
 // API Configuration - Update this to match your .NET backend URL
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:44320/api';
+export const API_BASE_URL = import.meta.env.VITE_APP_API_URL || 'https://localhost:44320/api';
 
 export const API_ENDPOINTS = {
   // Grades
@@ -25,7 +25,7 @@ export const API_ENDPOINTS = {
     insertUpdate: `${API_BASE_URL}/Technology/insertupadateTechnology`,
     delete: (id: number) => `${API_BASE_URL}/Technology/deleteTechnology/${id}`,
     getTechnologyTypes: `${API_BASE_URL}/Technology/GetTechnologyTypes`,
-
+    getTypes: `${API_BASE_URL}/Technology/GetTechnologyTypes`,
   },
 
   // Skills
@@ -79,6 +79,24 @@ export const API_ENDPOINTS = {
   profileUsers: {
     getAll: `${API_BASE_URL}/ProfileUser/GetAllProfileUser`,
     insertUpdate: `${API_BASE_URL}/ProfileUser/insertupadateProfileUser`,
+    getByUser: (userId: number) => `${API_BASE_URL}/MapToProfileUser/GetPofileUserById/${userId}`,
     delete: (id: number) => `${API_BASE_URL}/ProfileUser/deleteProfileUser/${id}`,
+  },
+
+  // Skill Matrix
+  matrix: {
+    getskillbyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllSkillforuser/${userId}`,
+    getsubskillbyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllsubSkillforuser/${userId}`,
+    gettechnologybyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllTechnologyforuser/${userId}`,
+    gettechnologyskillbyuser: (userId: number) => `${API_BASE_URL}/Matrix/GetAllTechnologyskillforuser/${userId}`,
+    delete: (id: number) => `${API_BASE_URL}/Matrix/DeleteProfileUser/${id}`,
+  },
+
+  // Profile-User Mappings
+  mappedskillforuser: {
+    getAll: `${API_BASE_URL}/MapSkillMap/GetAllMappedSkillbyUser`,
+    getByUser: (userId: number) => `${API_BASE_URL}/MapSkillMap/GetAllMappedSkillbyUser/${userId}`,
+    insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
+    delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
   },
 };

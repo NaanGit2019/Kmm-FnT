@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Technologies', href: '/technologies', icon: Cpu },
   { name: 'Skills', href: '/skills', icon: Layers },
   { name: 'Profiles', href: '/profiles', icon: Users },
