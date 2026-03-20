@@ -26,19 +26,19 @@ import { toast } from 'sonner';
 export default function Grades() {
   const { data: grades = [], isLoading, error } = useGrades();
   const { insertUpdate, deleteMutation } = useGradeMutation();
-  
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
   const [deletingGrade, setDeletingGrade] = useState<Grade | null>(null);
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive'>('active');
-  
+
   const filterByStatus = (items: Grade[], filter: 'active' | 'inactive'): Grade[] => {
     if (filter === 'active') return items.filter(item => item.isactive === true);
     if (filter === 'inactive') return items.filter(item => item.isactive === false);
     return items;
   };
-  
+
   const [formData, setFormData] = useState({
     title: '',
     gradelevel: '',
@@ -57,15 +57,15 @@ export default function Grades() {
 
   const columns: Column<Grade>[] = [
     //{ key: 'id', header: 'ID' },
-    { 
-      key: 'title', 
+    {
+      key: 'title',
       header: 'Title',
       render: (item) => (
         <span className="font-medium text-foreground">{item.title}</span>
       )
     },
-    { 
-      key: 'gradelevel', 
+    {
+      key: 'gradelevel',
       header: 'Level',
       render: (item) => (
         <Badge variant="secondary" className="font-mono">
@@ -73,13 +73,13 @@ export default function Grades() {
         </Badge>
       )
     },
-    { 
-      key: 'isactive', 
+    {
+      key: 'isactive',
       header: 'Status',
       render: (item) => <StatusBadge active={item.isactive} />
     },
-    { 
-      key: 'createdAt', 
+    {
+      key: 'createdAt',
       header: 'Created',
       render: (item) => item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'
     },
@@ -156,11 +156,11 @@ export default function Grades() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Grades" 
+      <Header
+        title="Grades"
         subtitle="Manage employee grade levels"
       />
-      
+
       <div className="p-6">
         {isLoading ? (
           <div className="space-y-4">
@@ -171,21 +171,21 @@ export default function Grades() {
           <div className="bg-card rounded-xl border border-border animate-fade-in">
             {/* Table */}
             <DataTable
-  title="Grades"
-  data={filterByStatus(grades, statusFilter)}
-  columns={columns}
-  searchKey="title"
-  onAdd={canCreate ? handleAdd : undefined}
-  addLabel="Add Grade"
-  onEdit={canEdit ? handleEdit : undefined}
-  onDelete={canDelete ? handleDelete : undefined}
-  headerActions={
-    <ActiveInactiveSelector
-      value={statusFilter}
-      onChange={setStatusFilter}
-    />
-  }
-/>
+              title="Grades"
+              data={filterByStatus(grades, statusFilter)}
+              columns={columns}
+              searchKey="title"
+              onAdd={canCreate ? handleAdd : undefined}
+              addLabel="Add Grade"
+              onEdit={canEdit ? handleEdit : undefined}
+              onDelete={canDelete ? handleDelete : undefined}
+              headerActions={
+                <ActiveInactiveSelector
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                />
+              }
+            />
           </div>
         )}
       </div>
@@ -198,12 +198,12 @@ export default function Grades() {
               {editingGrade ? 'Edit Grade' : 'Add Grade'}
             </DialogTitle>
             <DialogDescription>
-              {editingGrade 
+              {editingGrade
                 ? 'Update the grade details below.'
                 : 'Fill in the details to add a new grade.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title *</Label>
@@ -214,7 +214,7 @@ export default function Grades() {
                 placeholder="e.g., Senior"
               />
             </div>
-            
+
             <div className="grid gap-2">
               <Label htmlFor="gradelevel">Grade Level *</Label>
               <Input
@@ -224,7 +224,7 @@ export default function Grades() {
                 placeholder="e.g., L3"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <Label htmlFor="isactive">Active</Label>
               <Switch
@@ -234,7 +234,7 @@ export default function Grades() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
