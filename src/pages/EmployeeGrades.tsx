@@ -11,248 +11,248 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Save, User, Award, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-    useGrades,
-    useSkills,
-    useSubskills,
-    useProfiles,
-    useUsers,
-    useTechnologies,
-    useSkillMaps,
-    useProfileUsers,
-    useSkillMapMutation,
-    useTechnologySkills,
-    useTechnologyProfiles,
-    useSkillMapsByUser,
-    useTechnologyProfilesbyprofileid,
-    useSkillByUser,
-    useSubSkillByUser,
-    useTechnologyByUser,
-    useTechnologyskillByUser
+  useGrades,
+  useSkills,
+  useSubskills,
+  useProfiles,
+  useUsers,
+  useTechnology,
+  useSkillMaps,
+  useProfileUsers,
+  useSkillMapMutation,
+  useTechnologySkills,
+  useTechnologyProfiles,
+  useSkillMapsByUser,
+  useTechnologyProfilesbyprofileid,
+  useSkillByUser,
+  useSubSkillByUser,
+  useTechnologyByUser,
+  useTechnologyskillByUser
 } from '@/hooks/useApi';
 import type { MapSkillmap } from '@/types';
 import {
-    StatusCards,
-    TechnologyTabs,
-    GradeLegend,
-    SkillGradeTable,
-    EmployeeInfoCard,
-    EmployeeSelector
+  StatusCards,
+  TechnologyTabs,
+  GradeLegend,
+  SkillGradeTable,
+  EmployeeInfoCard,
+  EmployeeSelector
 
 } from '../components/Employee-Grades/Index';
 
 const gradeColors: Record<string, string> = {
-    'Level_1': 'bg-slate-500',
-    'Level_2': 'bg-blue-500',
-    'L3': 'bg-green-500',
-    'L4': 'bg-purple-500',
-    'L5': 'bg-amber-500',
+  'Level_1': 'bg-slate-500',
+  'Level_2': 'bg-blue-500',
+  'L3': 'bg-green-500',
+  'L4': 'bg-purple-500',
+  'L5': 'bg-amber-500',
 };
 
 export default function EmployeeGrades() {
-    const { data: grades = [], isLoading: gradesLoading } = useGrades();
-    const { data: skills = [], isLoading: skillsLoading } = useSkills();
-    const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
-    const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
-    const { data: users = [], isLoading: usersLoading } = useUsers();
-    const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
-    const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
-    //console.log("aa", profileUsers)
-    //const { data: technologySkills = [] } = useTechnologySkills();
-    const { data: technologyProfiles = [] } = useTechnologyProfiles();
-    const { data: technologyProfilesbyprofileid = [] } = useTechnologyProfilesbyprofileid();
-    const { data: technologies = [], isLoading: technologyloading } = useTechnologies();
-    const { insertUpdate } = useSkillMapMutation();
+  const { data: grades = [], isLoading: gradesLoading } = useGrades();
+  const { data: skills = [], isLoading: skillsLoading } = useSkills();
+  const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
+  const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
+  const { data: users = [], isLoading: usersLoading } = useUsers();
+  const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
+  const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
+  //console.log("aa", profileUsers)
+  //const { data: technologySkills = [] } = useTechnologySkills();
+  const { data: technologyProfiles = [] } = useTechnologyProfiles();
+  const { data: technologyProfilesbyprofileid = [] } = useTechnologyProfilesbyprofileid();
+  const { data: technologies = [], isLoading: technologyloading } = useTechnology();
+  const { insertUpdate } = useSkillMapMutation();
 
-    const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
-        usersLoading || skillMapsLoading || profileUsersLoading;
+  const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
+    usersLoading || skillMapsLoading || profileUsersLoading;
 
-    const [selectedUserId, setSelectedUserId] = useState<number>(0);
-    const [pendingChanges, setPendingChanges] = useState<Map<number, number>>(new Map());
-    const [hasChanges, setHasChanges] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number>(0);
+  const [pendingChanges, setPendingChanges] = useState<Map<number, number>>(new Map());
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-    const selectedUser = users.find(u => u.id === selectedUserId);
-    const { data: useSkillMapsByUserdata = [], isLoading: useSkillMapsByUserLoading } = useSkillMapsByUser(selectedUserId);
+  const selectedUser = users.find(u => u.id === selectedUserId);
+  const { data: useSkillMapsByUserdata = [], isLoading: useSkillMapsByUserLoading } = useSkillMapsByUser(selectedUserId);
 
-    //matrix
-    const { data: userSkills = [], isLoading: skillsforuserLoading, refetch:fetchskill } = useSkillByUser(selectedUserId);
-    const { data: userSubSkills = [], isLoading: subskillsforuserLoading, refetch: fetchSubskill } = useSubSkillByUser(selectedUserId);
-    const { data: userTechnology = [], isLoading: technologyforuserLoading, refetch: fetchtechnology } = useTechnologyByUser(selectedUserId);
-    const { data: technologySkills = [], isLoading: technologySkillsisloading, refetch: fetchtechnologyskill } = useTechnologyskillByUser(selectedUserId);
+  //matrix
+  const { data: userSkills = [], isLoading: skillsforuserLoading, refetch: fetchskill } = useSkillByUser(selectedUserId);
+  const { data: userSubSkills = [], isLoading: subskillsforuserLoading, refetch: fetchSubskill } = useSubSkillByUser(selectedUserId);
+  const { data: userTechnology = [], isLoading: technologyforuserLoading, refetch: fetchtechnology } = useTechnologyByUser(selectedUserId);
+  const { data: technologySkills = [], isLoading: technologySkillsisloading, refetch: fetchtechnologyskill } = useTechnologyskillByUser(selectedUserId);
 
-    //console.log("a", profileUsers);
-    const userProfile = profileUsers.filter(pu => pu.userId === selectedUserId);
+  //console.log("a", profileUsers);
+  const userProfile = profileUsers.filter(pu => pu.userId === selectedUserId);
 
-    //console.log("selectedUserId", selectedUserId);
-    //console.log("userSkills", userSkills);
-    //console.log("userSubSkills", userSubSkills);
-    //console.log("userTechnology", userTechnology);
-    const profileIds = userProfile.map(up => up.profileId);
+  //console.log("selectedUserId", selectedUserId);
+  //console.log("userSkills", userSkills);
+  //console.log("userSubSkills", userSubSkills);
+  //console.log("userTechnology", userTechnology);
+  const profileIds = userProfile.map(up => up.profileId);
 
-    const profile = userProfile ? profiles.filter(p => profileIds.includes(p.id)) : null;
-    console.log("profile", profile);
+  const profile = userProfile ? profiles.find(p => profileIds.includes(p.id)) : null;
+  console.log("profile", profile);
 
-    /*
-    User-ID-->ProfileUser-->TechnologyProfile-->TechnologySKill--->Skill-->Subskill
-    */
+  /*
+  User-ID-->ProfileUser-->TechnologyProfile-->TechnologySKill--->Skill-->Subskill
+  */
 
-    // Get technologies for user's profile (hierarchical: User → Profile → Technologies)
-    //console.log("technologyProfiles", technologyProfilesbyprofileid);
-    const techIds = useMemo(() => {
-        if (!profileIds) return [];
+  // Get technologies for user's profile (hierarchical: User → Profile → Technologies)
+  //console.log("technologyProfiles", technologyProfilesbyprofileid);
+  const techIds = useMemo(() => {
+    if (!profileIds) return [];
 
-        else return technologyProfilesbyprofileid
-            .filter(tp => profileIds.includes(tp.profileId))
-        .map(tp => tp.technologyId)
-    }, [technologyProfilesbyprofileid, technologies, userProfile]);
+    else return technologyProfilesbyprofileid
+      .filter(tp => profileIds.includes(tp.profileId))
+      .map(tp => tp.technologyId)
+  }, [technologyProfilesbyprofileid, technologies, userProfile]);
 
-    //const userTechnologies = useMemo(() => {
-    //    if (!userProfile) return [];
-        
-        //console.log("techIds", techIds)
-    //    return technologies.filter(t => techIds.includes(t.id) && t.isactive);
-    //}, [technologyProfiles, technologies, userProfile]);
-    //////console.log("userTechnologies", userTechnologies)//------>Technologies which are mapped to User Id
+  //const userTechnologies = useMemo(() => {
+  //    if (!userProfile) return [];
 
-    //console.log("technologySkills", technologySkills);
-    const userTechnologiesskill = useMemo(() => {
-        if (!userProfile) return [];
-        return technologySkills.filter(t => techIds.includes(t.technologyId) && t.isactive);
-    }, [technologyProfiles, technologySkills, userProfile]);
-    ////console.log("usertechnologySkills", userTechnologiesskill)
+  //console.log("techIds", techIds)
+  //    return technologies.filter(t => techIds.includes(t.id) && t.isactive);
+  //}, [technologyProfiles, technologies, userProfile]);
+  //////console.log("userTechnologies", userTechnologies)//------>Technologies which are mapped to User Id
 
-    //need to get the subksill list based on the userid and technologid 
-    // Calculate total subskills for all assigned technologies
-    const totalSubskills = useMemo(() => {
-        const techSkillIds = technologySkills
-            .filter(ts => userTechnology.some(t => t.id == ts.technologyId))
-            .map(ts => ts.skillId);
+  //console.log("technologySkills", technologySkills);
+  const userTechnologiesskill = useMemo(() => {
+    if (!userProfile) return [];
+    return technologySkills.filter(t => techIds.includes(t.technologyId) && t.isactive);
+  }, [technologyProfiles, technologySkills, userProfile]);
+  ////console.log("usertechnologySkills", userTechnologiesskill)
 
-        return subskills.filter(ss =>
-            techSkillIds.includes(ss.skillId) && ss.isactive
-        ).length;
-    }, [technologySkills, userTechnology, subskills]);
+  //need to get the subksill list based on the userid and technologid 
+  // Calculate total subskills for all assigned technologies
+  const totalSubskills = useMemo(() => {
+    const techSkillIds = technologySkills
+      .filter(ts => userTechnology.some(t => t.id == ts.technologyId))
+      .map(ts => ts.skillId);
 
-
-    const userSkillMaps = useMemo(() =>
-        useSkillMapsByUserdata,//.filter(sm => sm.userId === selectedUserId),
-        [useSkillMapsByUserdata, selectedUserId]
-    );
-    //console.log("userSkillMaps", userSkillMaps)
-    ////console.log("Skills", skills);
+    return subskills.filter(ss =>
+      techSkillIds.includes(ss.skillId) && ss.isactive
+    ).length;
+  }, [technologySkills, userTechnology, subskills]);
 
 
-    const skillsWithSubskillsall = useMemo(() =>
-        skills.filter(s => s.isactive).map(skill => ({
-            ...skill,
-            subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
-        })),
-        [skills, subskills]
-    );
-    const skillsWithSubskills = useMemo(() =>
-        skills.filter(s => s.isactive).map(skill => ({
-            ...skill,
-            subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
-        })),
-        [skills, subskills]
-    );
-    ////console.log("skillsWithSubskills", skillsWithSubskills)
+  const userSkillMaps = useMemo(() =>
+    useSkillMapsByUserdata,//.filter(sm => sm.userId === selectedUserId),
+    [useSkillMapsByUserdata, selectedUserId]
+  );
+  //console.log("userSkillMaps", userSkillMaps)
+  ////console.log("Skills", skills);
 
 
-    const getGradeForSubskill = (subskillId: number) => {
-        // Check pending changes first
-        if (pendingChanges.has(subskillId)) {
-            return pendingChanges.get(subskillId) || 0;
-        }
-        //console.log(pendingChanges)
-        const mapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
-        //console.log(mapping)
-        return mapping?.gradeId || 0;
-    };
-    console.log(userSkillMaps)
-    const skillsWithGrades = useMemo(() => {
-        return skillsWithSubskillsall.map(skill => ({
-            ...skill,
-            subskills: skill.subskills.map(subskill => {
-                const subskillGrade = useSkillMapsByUserdata.find(usm => usm.subskillId === subskill.id);
-                return {
-                    ...subskill,
-                    gradeId: subskillGrade?.gradeid || null
-                };
-            })
-        }));
-    }, [skillsWithSubskillsall, useSkillMapsByUserdata]);
+  const skillsWithSubskillsall = useMemo(() =>
+    skills.filter(s => s.isactive).map(skill => ({
+      ...skill,
+      subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
+    })),
+    [skills, subskills]
+  );
+  const skillsWithSubskills = useMemo(() =>
+    skills.filter(s => s.isactive).map(skill => ({
+      ...skill,
+      subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
+    })),
+    [skills, subskills]
+  );
+  ////console.log("skillsWithSubskills", skillsWithSubskills)
 
-   // //console.log("skillsWithGrades", skillsWithGrades);
-    const handleGradeChange = (subskillId: number, gradeId: number) => {
-        setHasChanges(true);
-        const newPendingChanges = new Map(pendingChanges);
-        newPendingChanges.set(subskillId, gradeId);
-        setPendingChanges(newPendingChanges);
-    };
 
-    const handleSave = async () => {
-        setIsSaving(true);
-        const promises: Promise<void>[] = [];
+  const getGradeForSubskill = (subskillId: number) => {
+    // Check pending changes first
+    if (pendingChanges.has(subskillId)) {
+      return pendingChanges.get(subskillId) || 0;
+    }
+    //console.log(pendingChanges)
+    const mapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
+    //console.log(mapping)
+    return mapping?.gradeid || 0;
+  };
+  console.log(userSkillMaps)
+  const skillsWithGrades = useMemo(() => {
+    return skillsWithSubskillsall.map(skill => ({
+      ...skill,
+      subskills: skill.subskills.map(subskill => {
+        const subskillGrade = useSkillMapsByUserdata.find(usm => usm.subskillId === subskill.id);
+        return {
+          ...subskill,
+          gradeId: subskillGrade?.gradeid || null
+        };
+      })
+    }));
+  }, [skillsWithSubskillsall, useSkillMapsByUserdata]);
 
-        pendingChanges.forEach((gradeId, subskillId) => {
-            const existingMapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
+  // //console.log("skillsWithGrades", skillsWithGrades);
+  const handleGradeChange = (subskillId: number, gradeId: number) => {
+    setHasChanges(true);
+    const newPendingChanges = new Map(pendingChanges);
+    newPendingChanges.set(subskillId, gradeId);
+    setPendingChanges(newPendingChanges);
+  };
 
-            const data: MapSkillmap = {
-                id: existingMapping?.id || 0,
-                subskillId,
-                userId: selectedUserId,
-                gradeid: gradeId,
-                isactive: true
-            };
+  const handleSave = async () => {
+    setIsSaving(true);
+    const promises: Promise<void>[] = [];
 
-            promises.push(
-                new Promise((resolve, reject) => {
-                    insertUpdate.mutate(data, {
-                        onSuccess: () => resolve(),
-                        onError: (error) => reject(error)
-                    });
-                })
-            );
-        });
+    pendingChanges.forEach((gradeId, subskillId) => {
+      const existingMapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
 
-        try {
-            await Promise.all(promises);
-            toast.success('Employee grades saved successfully!');
-            setHasChanges(false);
-            setPendingChanges(new Map());
-        } catch (error) {
-            toast.error('Failed to save some grades');
-        }
-    };
+      const data: MapSkillmap = {
+        id: existingMapping?.id || 0,
+        subskillId,
+        userId: selectedUserId,
+        gradeid: gradeId,
+        isactive: true
+      };
 
-    const calculateProgress = () => {
-        const totalSubskills = skillsWithSubskills.reduce((acc, s) => acc + s.subskills.length, 0);
-        const gradedSubskills = userSkillMaps.length + pendingChanges.size;
-        return totalSubskills > 0 ? (gradedSubskills / totalSubskills) * 100 : 0;
-    };
+      promises.push(
+        new Promise((resolve, reject) => {
+          insertUpdate.mutate(data, {
+            onSuccess: () => resolve(),
+            onError: (error) => reject(error)
+          });
+        })
+      );
+    });
 
-    const calculateAverageGrade = () => {
-        const allGrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
-        pendingChanges.forEach((grade) => allGrades.push(grade));
-        const validgrades = allGrades.filter(g => g > 0);
+    try {
+      await Promise.all(promises);
+      toast.success('Employee grades saved successfully!');
+      setHasChanges(false);
+      setPendingChanges(new Map());
+    } catch (error) {
+      toast.error('Failed to save some grades');
+    }
+  };
 
-        if (validgrades.length === 0) return '0';
-        const total = validgrades.reduce((acc, grade) => acc + grade, 0);
-        return (total / validgrades.length).toFixed(1);
-    };
-    //const calculateaveragegrade = () => {
-    //    const allgrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
-    //    pendingChanges.forEach((grade) => allgrades.push(grade));
-    //    const validgrades = allgrades.filter(g => g > 0);
-    //    if (validgrades.length === 0) return '0';
-    //    const total = validgrades.reduce((acc, grade) => acc + grade, 0);
-    //    return (total / validgrades.length).toFixed(1);
-    //};
+  const calculateProgress = () => {
+    const totalSubskills = skillsWithSubskills.reduce((acc, s) => acc + s.subskills.length, 0);
+    const gradedSubskills = userSkillMaps.length + pendingChanges.size;
+    return totalSubskills > 0 ? (gradedSubskills / totalSubskills) * 100 : 0;
+  };
 
-    const getInitials = (name: string) => {
-        return name.split(' ').map(n => n[0]).join('').toUpperCase();
-    };
+  const calculateAverageGrade = () => {
+    const allGrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
+    pendingChanges.forEach((grade) => allGrades.push(grade));
+    const validgrades = allGrades.filter(g => g > 0);
+
+    if (validgrades.length === 0) return '0';
+    const total = validgrades.reduce((acc, grade) => acc + grade, 0);
+    return (total / validgrades.length).toFixed(1);
+  };
+  //const calculateaveragegrade = () => {
+  //    const allgrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
+  //    pendingChanges.forEach((grade) => allgrades.push(grade));
+  //    const validgrades = allgrades.filter(g => g > 0);
+  //    if (validgrades.length === 0) return '0';
+  //    const total = validgrades.reduce((acc, grade) => acc + grade, 0);
+  //    return (total / validgrades.length).toFixed(1);
+  //};
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
 
   if (isLoading) {
     return (
@@ -271,8 +271,8 @@ export default function EmployeeGrades() {
 
   return (
     <div className="space-y-6">
-      <Header 
-        title="Employee Grades" 
+      <Header
+        title="Employee Grades"
         subtitle="Apply and manage competency grades for individual employees"
       />
 
@@ -283,8 +283,8 @@ export default function EmployeeGrades() {
             <CardTitle className="text-base">Select Employee</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select 
-              value={selectedUserId.toString()} 
+            <Select
+              value={selectedUserId.toString()}
               onValueChange={(v) => {
                 setSelectedUserId(parseInt(v));
                 setHasChanges(false);
@@ -428,7 +428,7 @@ export default function EmployeeGrades() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Select 
+                            <Select
                               value={currentGradeId.toString()}
                               onValueChange={(v) => handleGradeChange(subskill.id, parseInt(v))}
                             >
