@@ -17,21 +17,27 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
+import useAuth from '@/hooks/useAuth';
+import { canViewModule } from '@/lib/accessControl';
+
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Technologies', href: '/technologies', icon: Cpu },
-  { name: 'Skills', href: '/skills', icon: Layers },
-  { name: 'Profiles', href: '/profiles', icon: Users },
-  { name: 'Grades', href: '/grades', icon: Award },
-  { name: 'Mappings', href: '/mappings', icon: Link2 },
-  { name: 'Employee Grades', href: '/employee-grades', icon: UserCheck },
-  { name: 'Skill Matrix', href: '/matrix', icon: Grid3X3 },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, module: 'dashboard' as const },
+  { name: 'Technologies', href: '/technologies', icon: Cpu, module: 'technologies' as const },
+  { name: 'Skills', href: '/skills', icon: Layers, module: 'skills' as const },
+  { name: 'Profiles', href: '/profiles', icon: Users, module: 'profiles' as const },
+  { name: 'Grades', href: '/grades', icon: Award, module: 'grades' as const },
+  { name: 'Mappings', href: '/mappings', icon: Link2, module: 'mappings' as const },
+  { name: 'Employee Grades', href: '/employee-grades', icon: UserCheck, module: 'employee-grades' as const },
+  { name: 'Skill Matrix', href: '/matrix', icon: Grid3X3, module: 'matrix' as const },
+  { name: 'Analytics', href: '/analytics', icon: BarChart3, module: 'analytics' as const },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
+
+  const visibleNavigation = navigation.filter((item) => canViewModule(user, item.module));
 
   return (
     <div
@@ -56,7 +62,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        {navigation.map((item) => {
+        {visibleNavigation.map((item) => {
           const isActive = location.pathname === item.href;
           return (
             <NavLink

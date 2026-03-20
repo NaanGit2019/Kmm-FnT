@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
 import { useGrades, useGradeMutation } from '@/hooks/useApi';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule, canCreateModule, canEditModule, canDeleteModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import type { Grade } from '@/types';
 import {
@@ -42,6 +45,16 @@ export default function Grades() {
     isactive: true,
   });
 
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'grades');
+  const canCreate = canCreateModule(user, 'grades');
+  const canEdit = canEditModule(user, 'grades');
+  const canDelete = canDeleteModule(user, 'grades');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Grades." />;
+  }
+
   const columns: Column<Grade>[] = [
     //{ key: 'id', header: 'ID' },
     { 
@@ -73,12 +86,14 @@ export default function Grades() {
   ];
 
   const handleAdd = () => {
+    if (!canCreate) return;
     setEditingGrade(null);
     setFormData({ title: '', gradelevel: '', isactive: true });
     setDialogOpen(true);
   };
 
   const handleEdit = (grade: Grade) => {
+    if (!canEdit) return;
     setEditingGrade(grade);
     setFormData({
       title: grade.title || '',
@@ -160,10 +175,10 @@ export default function Grades() {
   data={filterByStatus(grades, statusFilter)}
   columns={columns}
   searchKey="title"
-  onAdd={handleAdd}
+  onAdd={canCreate ? handleAdd : undefined}
   addLabel="Add Grade"
-  onEdit={handleEdit}
-  onDelete={handleDelete}
+  onEdit={canEdit ? handleEdit : undefined}
+  onDelete={canDelete ? handleDelete : undefined}
   headerActions={
     <ActiveInactiveSelector
       value={statusFilter}

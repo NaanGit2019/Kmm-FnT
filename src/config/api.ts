@@ -46,9 +46,9 @@ export const API_ENDPOINTS = {
 
   // Users
   users: {
-    getAll: `${API_BASE_URL}/User/GetAllUser`,
-    getById: (id: number) => `${API_BASE_URL}/User/GetUserbyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/User/insertupadateUser`,
+    getAll: `${API_BASE_URL}/user/GetAllusers`,
+    getById: (id: number) => `${API_BASE_URL}/Users/GetUserbyId/${id}`,
+    insertUpdate: `${API_BASE_URL}/Users/insertupadateUser`,
     delete: (id: number) => `${API_BASE_URL}/User/deleteUser/${id}`,
   },
 

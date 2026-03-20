@@ -1,4 +1,7 @@
 import { useState, useMemo } from 'react';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { Header } from '@/components/layout/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +30,13 @@ import {
 import type { MapTechnologyProfile, MapTechnologySkill, MapProfileUser } from '@/types';
 
 export default function Mappings() {
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'mappings');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Mappings." />;
+  }
+
   const { data: profilesData, isLoading: profilesLoading } = useProfiles();
   const { data: technologiesData, isLoading: technologiesLoading } = useTechnology();
   const { data: skillsData, isLoading: skillsLoading } = useSkills();

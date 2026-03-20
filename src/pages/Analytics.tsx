@@ -1,4 +1,7 @@
 import { useMemo } from 'react';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +29,13 @@ import {
 const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4'];
 
 export default function Analytics() {
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'analytics');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Analytics." />;
+  }
+
   const { data: grades = [], isLoading: gradesLoading } = useGrades();
   const { data: skills = [], isLoading: skillsLoading } = useSkills();
   const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();

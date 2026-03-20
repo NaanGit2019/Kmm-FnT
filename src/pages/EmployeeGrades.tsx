@@ -1,4 +1,12 @@
-﻿import { useState, useMemo } from 'react';
+﻿import { useEffect, useState, useMemo } from 'react';
+import useAuth from '@/hooks/useAuth';
+import {
+  canViewModule,
+  canCreateModule,
+  canEditModule,
+  canDeleteModule,
+  normalizeRole
+} from '@/lib/accessControl';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,6 +17,7 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Save, User, Award, TrendingUp } from 'lucide-react';
+import { AccessDenied } from '@/components/AccessDenied';
 import { toast } from 'sonner';
 import {
   useGrades,
@@ -66,16 +75,44 @@ export default function EmployeeGrades() {
   const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
     usersLoading || skillMapsLoading || profileUsersLoading;
 
+  const { user } = useAuth();
+  const role = normalizeRole(user);
+  const isAllowed = canViewModule(user, 'employee-grades');
+  const canEdit = canEditModule(user, 'employee-grades');
+
+  const currentUserId = Number(user?.user_id ?? 0);
+
   const [selectedUserId, setSelectedUserId] = useState<number>(0);
   const [pendingChanges, setPendingChanges] = useState<Map<number, number>>(new Map());
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const selectedUser = users.find(u => u.id === selectedUserId);
-  const { data: useSkillMapsByUserdata = [], isLoading: useSkillMapsByUserLoading } = useSkillMapsByUser(selectedUserId);
+  useEffect(() => {
+    if (role === 'employee' && currentUserId > 0 && users.length > 0) {
+      const self = users.find(u => u.id === currentUserId || Number(u.id) === currentUserId);
+      if (self) {
+        setSelectedUserId(self.id);
+      }
+    } else if (role !== 'employee' && users.length > 0 && selectedUserId === 0) {
+      setSelectedUserId(users[0].id);
+    }
+  }, [role, users, currentUserId, selectedUserId]);
+
+  const selectedUserFromList = users.find(u => Number(u.id) === selectedUserId);
+  const employeeSelf = role === 'employee' ? users.find(u => Number(u.id) === currentUserId) : undefined;
+
+  const selectedUser = role === 'employee'
+    ? employeeSelf || selectedUserFromList
+    : selectedUserFromList;
+
+  const selectedId = role === 'employee'
+    ? (employeeSelf ? Number(employeeSelf.id) : currentUserId)
+    : (selectedUser ? Number(selectedUser.id) : selectedUserId);
+
+  const { data: useSkillMapsByUserdata = [], isLoading: useSkillMapsByUserLoading } = useSkillMapsByUser(selectedId);
 
   //matrix
-  const { data: userSkills = [], isLoading: skillsforuserLoading, refetch: fetchskill } = useSkillByUser(selectedUserId);
+  const { data: userSkills = [], isLoading: skillsforuserLoading, refetch: fetchskill } = useSkillByUser(selectedId);
   const { data: userSubSkills = [], isLoading: subskillsforuserLoading, refetch: fetchSubskill } = useSubSkillByUser(selectedUserId);
   const { data: userTechnology = [], isLoading: technologyforuserLoading, refetch: fetchtechnology } = useTechnologyByUser(selectedUserId);
   const { data: technologySkills = [], isLoading: technologySkillsisloading, refetch: fetchtechnologyskill } = useTechnologyskillByUser(selectedUserId);
@@ -192,6 +229,10 @@ export default function EmployeeGrades() {
   };
 
   const handleSave = async () => {
+    if (!canEdit) {
+      toast.error('You are not permitted to update grades.');
+      return;
+    }
     setIsSaving(true);
     const promises: Promise<void>[] = [];
 
@@ -269,6 +310,14 @@ export default function EmployeeGrades() {
     );
   }
 
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Employee Grades." />;
+  }
+
+  if (role === 'employee' && currentUserId <= 0) {
+    return <AccessDenied message="Employee Grades is available only for logged-in employees." />;
+  }
+
   return (
     <div className="space-y-6">
       <Header
@@ -283,28 +332,34 @@ export default function EmployeeGrades() {
             <CardTitle className="text-base">Select Employee</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select
-              value={selectedUserId.toString()}
-              onValueChange={(v) => {
-                setSelectedUserId(parseInt(v));
-                setHasChanges(false);
-                setPendingChanges(new Map());
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select an employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.filter(u => u.isactive).map(user => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {user.name} - {user.department}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {role === 'employee' ? (
+              <div className="p-3 rounded border border-muted text-sm">
+                {selectedUser ? selectedUser.name : 'You are not assigned to any employee record.'}
+              </div>
+            ) : (
+              <Select
+                value={selectedUserId.toString()}
+                onValueChange={(v) => {
+                  setSelectedUserId(parseInt(v));
+                  setHasChanges(false);
+                  setPendingChanges(new Map());
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.filter(u => u.isactive).map(user => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {user.name} - {user.department}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </CardContent>
         </Card>
 
@@ -364,7 +419,7 @@ export default function EmployeeGrades() {
                   </div>
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={!hasChanges || insertUpdate.isPending}>
+              <Button onClick={handleSave} disabled={!canEdit || !hasChanges || insertUpdate.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {insertUpdate.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -431,6 +486,7 @@ export default function EmployeeGrades() {
                             <Select
                               value={currentGradeId.toString()}
                               onValueChange={(v) => handleGradeChange(subskill.id, parseInt(v))}
+                              disabled={!canEdit}
                             >
                               <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Select grade" />
@@ -443,7 +499,7 @@ export default function EmployeeGrades() {
                                   </SelectItem>
                                 ))}
                               </SelectContent>
-                            </Select>
+                            </Select>SS
                           </TableCell>
                         </TableRow>
                       );

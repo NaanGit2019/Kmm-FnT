@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { StatusBadge } from '@/components/ui/data-table';
 import { useSkills, useSubskills, useSkillMutation, useSubskillMutation } from '@/hooks/useApi';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule, canCreateModule, canEditModule, canDeleteModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import type { Skill, Subskill } from '@/types';
 import {
@@ -64,6 +67,16 @@ export default function Skills() {
     title: '',
     isactive: true,
   });
+
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'skills');
+  const canCreate = canCreateModule(user, 'skills');
+  const canEdit = canEditModule(user, 'skills');
+  const canDelete = canDeleteModule(user, 'skills');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Skills." />;
+  }
 
   const isLoading = skillsLoading || subskillsLoading;
 
@@ -128,6 +141,7 @@ export default function Skills() {
   };
 
   const handleAddSubskill = (skillId: number) => {
+    if (!canEdit) return;
     setSelectedSkillId(skillId);
     setEditingSubskill(null);
     setSubskillFormData({ title: '', isactive: true });
@@ -135,6 +149,7 @@ export default function Skills() {
   };
 
   const handleEditSubskill = (subskill: Subskill) => {
+    if (!canEdit) return;
     setSelectedSkillId(subskill.skillId);
     setEditingSubskill(subskill);
     setSubskillFormData({ title: subskill.title || '', isactive: subskill.isactive ?? true });
@@ -142,6 +157,7 @@ export default function Skills() {
   };
 
   const handleDeleteSubskill = (subskill: Subskill) => {
+    if (!canDelete) return;
     setDeletingSubskill(subskill);
     setSubskillDeleteDialogOpen(true);
   };
@@ -220,9 +236,11 @@ export default function Skills() {
                   />
                 </div>
                 <ActiveInactiveSelector value={statusFilter} onChange={setStatusFilter} />
-                <Button onClick={handleAdd}>
-                  Add Skill
-                </Button>
+                {canCreate && (
+                  <Button onClick={handleAdd}>
+                    Add Skill
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -261,14 +279,15 @@ export default function Skills() {
                         </div>
                         <div className="flex items-center gap-3">
                           <StatusBadge active={skill.isactive} />
-                          <Button variant="outline" size="sm" onClick={() => handleEdit(skill)}>
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleDelete(skill)}
+                            <Button variant="outline" size="sm" onClick={canEdit ? () => handleEdit(skill) : undefined} disabled={!canEdit}>
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-destructive hover:text-destructive"
+                              onClick={canDelete ? () => handleDelete(skill) : undefined}
+                              disabled={!canDelete}
                           >
                             Delete
                           </Button>
@@ -278,15 +297,17 @@ export default function Skills() {
                     
                     <CollapsibleContent>
                       <div className="pl-16 pr-4 pb-4 space-y-3 ">
-                        <Button 
-                          className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-2 text-xs "
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => handleAddSubskill(skill.id)}
-                        >
-                          <Plus className="w-4 h-4 mr-2 " />
-                          Add Subskill
-                        </Button>
+                        {canEdit && (
+                          <Button 
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-2 text-xs "
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleAddSubskill(skill.id)}
+                          >
+                            <Plus className="w-4 h-4 mr-2 " />
+                            Add Subskill
+                          </Button>
+                        )}
                         {skillSubskills.length === 0 ? (
                           <p className="text-sm text-muted-foreground py-2">
                             No sub-skills defined
@@ -304,7 +325,8 @@ export default function Skills() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-6 w-6 p-0"
-                                  onClick={() => handleEditSubskill(subskill)}
+                                  onClick={canEdit ? () => handleEditSubskill(subskill) : undefined}
+                                  disabled={!canEdit}
                                 >
                                   <Pencil className="w-3 h-3" />
                                 </Button>
@@ -312,7 +334,8 @@ export default function Skills() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteSubskill(subskill)}
+                                  onClick={canDelete ? () => handleDeleteSubskill(subskill) : undefined}
+                                  disabled={!canDelete}
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
