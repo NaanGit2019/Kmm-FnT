@@ -54,14 +54,21 @@ export default function Mappings() {
   const [showTechProfileDialog, setShowTechProfileDialog] = useState(false);
   const [newTechProfile, setNewTechProfile] = useState({ technologyId: 0, profileId: 0, isactive: true });
   const [editingTechProfile, setEditingTechProfile] = useState<MapTechnologyProfile | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteType, setDeleteType] = useState<'techProfile' | 'techSkill' | 'profileUser' | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const [showTechSkillDialog, setShowTechSkillDialog] = useState(false);
   const [newTechSkill, setNewTechSkill] = useState({ technologyId: 0, skillId: 0, isactive: true });
   const [editingTechSkill, setEditingTechSkill] = useState<MapTechnologySkill | null>(null);
 
   const [showProfileUserDialog, setShowProfileUserDialog] = useState(false);
-    const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0 });
-    console.log(technologies,"tech")
+  const [editingProfileUser, setEditingProfileUser] = useState<MapProfileUser | null>(null);
+  const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0, isactive: true });
+
+  const [techProfileFilter, setTechProfileFilter] = useState<'active' | 'inactive'>('active');
+  const [techSkillFilter, setTechSkillFilter] = useState<'active' | 'inactive'>('active');
+  const [profileUserFilter, setProfileUserFilter] = useState<'active' | 'inactive'>('active');
   const getTechnology = (id: number) => technologies.find(t => t.id === id);
   const getProfile = (id: number) => profiles.find(p => p.id === id);
   const getSkill = (id: number) => skills.find(s => s.id === id);
@@ -203,6 +210,10 @@ export default function Mappings() {
 
   const handleDeleteProfileUser = (id: number) => {
     deleteProfileUser.mutate(id);
+  };
+
+  const filterByStatus = (data: any[], status: 'active' | 'inactive') => {
+    return data.filter(item => (status === 'active' ? item.isactive : !item.isactive));
   };
 
   if (isLoading) {
