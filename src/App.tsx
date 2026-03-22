@@ -14,6 +14,7 @@ import Mappings from "./pages/Mappings";
 import EmployeeGrades from "./pages/EmployeeGrades";
 import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,8 @@ const App = () => (
       <BrowserRouter>
         <MainLayout>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/login" element={<Index />} />
             <Route path="/technologies" element={<Technologies />} />
             <Route path="/skills" element={<Skills />} />
             <Route path="/profiles" element={<Profiles />} />
