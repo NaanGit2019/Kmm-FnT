@@ -54,7 +54,17 @@ apiClient.interceptors.response.use(
     },
     (error) => {
         const message = error.response?.data?.message || error.message || 'An error occurred';
-        console.error('API Error:', message);
+        const status = error.response?.status;
+        
+        // Log details for 400/4xx errors
+        if (status && status >= 400 && status < 500) {
+            console.error(`API Error [${status}]:`, message);
+            console.error('Request URL:', error.config?.url);
+            console.error('Request Method:', error.config?.method);
+            console.error('Request Data:', error.config?.data);
+            console.error('Response Data:', error.response?.data);
+        }
+        
         return Promise.reject(new Error(message));
     }
 );
@@ -79,7 +89,7 @@ export const profileApi = {
 export const technologyApi = {
     getAll: () => apiClient.get<Technology[]>(API_ENDPOINTS.technologies.getAll).then(res => res.data),
     getById: (id: number) => apiClient.get<Technology>(API_ENDPOINTS.technologies.getById(id)).then(res => res.data),
-    getTypes: () => apiClient.get<{ id: number; name: string }[]>(API_ENDPOINTS.technologies.getTypes).then(res => res.data),
+    getTypes: () => apiClient.get<{ id: number; name: string }[]>(API_ENDPOINTS.technologies.getTechnologyTypes).then(res => res.data),
     insertUpdate: (data: Technology) => apiClient.post<Technology>(API_ENDPOINTS.technologies.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.technologies.delete(id)).then(res => res.data),
 };

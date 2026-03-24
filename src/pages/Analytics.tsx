@@ -10,16 +10,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { Users, Award, TrendingUp, BarChart3, Target, Layers } from 'lucide-react';
-import { 
-  useGrades, 
-  useSkills, 
-  useSubskills, 
+import {
+  useGrades,
+  useSkills,
+  useSubskills,
   useProfiles,
   useUsers,
   useSkillMaps,
@@ -44,23 +44,24 @@ export default function Analytics() {
   const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
   const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
 
-  const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading || 
-                    usersLoading || skillMapsLoading || profileUsersLoading;
+  const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
+    usersLoading || skillMapsLoading || profileUsersLoading;
 
   // Calculate user skill summaries
   const userSummaries = useMemo(() => {
+    if (!Array.isArray(users) || !Array.isArray(profileUsers)) return [];
     return users.filter(u => u.isactive).map(user => {
-      const userSkills = skillMaps.filter(sm => sm.userId === user.id);
-      const userProfile = profileUsers.find(pu => pu.userId === user.id);
+      const userSkills = Array.isArray(skillMaps) ? skillMaps.filter(sm => sm.userId === user.id) : [];
+      const userProfile = Array.isArray(profileUsers) ? profileUsers.find(pu => pu.userId === user.id) : null;
       const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
-      
+
       const totalGrade = userSkills.reduce((acc, sm) => acc + (sm.gradeid || 0), 0);
       const avgGrade = userSkills.length > 0 ? totalGrade / userSkills.length : 0;
-      
+
       // Get top skills (highest grades)
       const topSkillMaps = [...userSkills].sort((a, b) => (b.gradeid || 0) - (a.gradeid || 0)).slice(0, 3);
       const topSkills = topSkillMaps.map(sm => {
-        const subskill = subskills.find(ss => ss.id === sm.subskillId);
+        const subskill = Array.isArray(subskills) ? subskills.find(ss => ss.id === sm.subskillId) : null;
         return subskill?.title || '';
       });
 
@@ -77,31 +78,34 @@ export default function Analytics() {
   // Grade distribution across all users
   const gradeDistribution = useMemo(() => {
     const distribution: Record<number, number> = {};
-    skillMaps.forEach(sm => {
-      if (sm.gradeid) {
-        distribution[sm.gradeid] = (distribution[sm.gradeid] || 0) + 1;
-      }
-    });
-    
-    return grades.filter(g => g.isactive).map(grade => ({
+    if (Array.isArray(skillMaps)) {
+      skillMaps.forEach(sm => {
+        if (sm.gradeid) {
+          distribution[sm.gradeid] = (distribution[sm.gradeid] || 0) + 1;
+        }
+      });
+    }
+
+    return Array.isArray(grades) ? grades.filter(g => g.isactive).map(grade => ({
       name: `${grade.gradelevel} - ${grade.title}`,
       value: distribution[grade.id] || 0,
       level: grade.gradelevel
-    }));
+    })) : [];
   }, [skillMaps, grades]);
 
   // Skills coverage by skill category
   const skillCoverage = useMemo(() => {
+    if (!Array.isArray(skills) || !Array.isArray(subskills) || !Array.isArray(skillMaps) || !Array.isArray(users)) return [];
     return skills.filter(s => s.isactive).map(skill => {
       const skillSubskills = subskills.filter(ss => ss.skillId === skill.id);
       const subskillIds = skillSubskills.map(ss => ss.id);
-      const gradedCount = skillMaps.filter(sm => 
+      const gradedCount = skillMaps.filter(sm =>
         subskillIds.includes(sm.subskillId)
       ).length;
       const uniqueUsers = new Set(
         skillMaps.filter(sm => subskillIds.includes(sm.subskillId)).map(sm => sm.userId)
       ).size;
-      
+
       return {
         skill: skill.title || '',
         subskillCount: skillSubskills.length,
@@ -114,14 +118,15 @@ export default function Analytics() {
 
   // Radar chart data for team skill distribution
   const teamSkillRadar = useMemo(() => {
+    if (!Array.isArray(skills) || !Array.isArray(subskills) || !Array.isArray(skillMaps)) return [];
     return skills.filter(s => s.isactive).map(skill => {
       const skillSubskills = subskills.filter(ss => ss.skillId === skill.id);
       const subskillIds = skillSubskills.map(ss => ss.id);
       const relevantMaps = skillMaps.filter(sm => subskillIds.includes(sm.subskillId));
-      const avgGrade = relevantMaps.length > 0 
-        ? relevantMaps.reduce((acc, sm) => acc + (sm.gradeid || 0), 0) / relevantMaps.length 
+      const avgGrade = relevantMaps.length > 0
+        ? relevantMaps.reduce((acc, sm) => acc + (sm.gradeid || 0), 0) / relevantMaps.length
         : 0;
-      
+
       return {
         skill: skill.title?.substring(0, 15) || '',
         fullName: skill.title || '',
@@ -133,11 +138,12 @@ export default function Analytics() {
 
   // Profile distribution
   const profileDistribution = useMemo(() => {
+    if (!Array.isArray(profileUsers) || !Array.isArray(profiles)) return [];
     const distribution: Record<number, number> = {};
     profileUsers.forEach(pu => {
       distribution[pu.profileId] = (distribution[pu.profileId] || 0) + 1;
     });
-    
+
     return profiles.filter(p => p.isactive).map(profile => ({
       name: profile.title || '',
       value: distribution[profile.id] || 0
@@ -146,9 +152,10 @@ export default function Analytics() {
 
   // Stats
   const stats = useMemo(() => {
+    if (!Array.isArray(skillMaps) || !Array.isArray(users)) return {};
     const totalGradedSkills = skillMaps.length;
-    const avgGradeAll = totalGradedSkills > 0 
-      ? skillMaps.reduce((acc, sm) => acc + (sm.gradeid || 0), 0) / totalGradedSkills 
+    const avgGradeAll = totalGradedSkills > 0
+      ? skillMaps.reduce((acc, sm) => acc + (sm.gradeid || 0), 0) / totalGradedSkills
       : 0;
     const seniorAndAbove = skillMaps.filter(sm => (sm.gradeid || 0) >= 3).length;
 
@@ -184,8 +191,8 @@ export default function Analytics() {
 
   return (
     <div className="space-y-6">
-      <Header 
-        title="Skills Analytics" 
+      <Header
+        title="Skills Analytics"
         subtitle="Comprehensive analysis of employee skills and competency levels"
       />
 
@@ -237,10 +244,10 @@ export default function Analytics() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis dataKey="level" className="text-xs" />
                   <YAxis className="text-xs" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      border: '1px solid hsl(var(--border))' 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))'
                     }}
                   />
                   <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -275,10 +282,10 @@ export default function Analytics() {
                     fill="hsl(var(--primary))"
                     fillOpacity={0.5}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      border: '1px solid hsl(var(--border))' 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))'
                     }}
                   />
                 </RadarChart>

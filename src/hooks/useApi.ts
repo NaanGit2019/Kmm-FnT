@@ -390,6 +390,9 @@ export function useProfileUsers() {
     return useQuery({
         queryKey: queryKeys.profileUsers,
         queryFn: profileUserApi.getAll,
+        select: (data: any) => Array.isArray(data) ? data : [],
+        staleTime: 0,
+        refetchOnFocus: true,
     });
 }
 // Profile-User by id Hooks

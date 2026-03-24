@@ -41,10 +41,10 @@ export default function Dashboard() {
   const mostUsedTechnology = useMemo(() => {
     const countByTech = new Map<number, number>();
 
-    technologySkills.forEach((item) => {
-      if (!item?.technologyId) return;
-      countByTech.set(item.technologyId, (countByTech.get(item.technologyId) || 0) + 1);
-    });
+    // technologySkills.forEach((item) => {
+    //   if (!item?.technologyId) return;
+    //   countByTech.set(item.technologyId, (countByTech.get(item.technologyId) || 0) + 1);
+    // });
 
     technologyProfiles.forEach((item) => {
       if (!item?.technologyId) return;

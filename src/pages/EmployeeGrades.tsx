@@ -118,7 +118,8 @@ export default function EmployeeGrades() {
   const { data: technologySkills = [], isLoading: technologySkillsisloading, refetch: fetchtechnologyskill } = useTechnologyskillByUser(selectedUserId);
 
   //console.log("a", profileUsers);
-  const userProfile = profileUsers.filter(pu => pu.userId === selectedUserId);
+  const userProfile = Array.isArray(profileUsers) ? profileUsers.filter(pu => pu.userId === selectedUserId) : [];
+
 
   //console.log("selectedUserId", selectedUserId);
   //console.log("userSkills", userSkills);

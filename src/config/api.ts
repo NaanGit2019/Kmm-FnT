@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
   profiles: {
     getAll: `${API_BASE_URL}/Profile/GetAllProfile`,
     getById: (id: number) => `${API_BASE_URL}/Profile/GetProfilebyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/Profile/insertupadateProfile`,
+    insertUpdate: `${API_BASE_URL}/Profile/InsertUpdateProfile`,
     delete: (id: number) => `${API_BASE_URL}/Profile/deleteProfile/${id}`,
   },
 
@@ -22,7 +22,7 @@ export const API_ENDPOINTS = {
   technologies: {
     getAll: `${API_BASE_URL}/Technology/GetAllTechnology`,
     getById: (id: number) => `${API_BASE_URL}/Technology/GetTechnologybyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/Technology/insertupadateTechnology`,
+    insertUpdate: `${API_BASE_URL}/Technology/InsertUpdateTechnology`,
     delete: (id: number) => `${API_BASE_URL}/Technology/deleteTechnology/${id}`,
     getTechnologyTypes: `${API_BASE_URL}/Technology/GetTechnologyTypes`,
   },
@@ -31,7 +31,7 @@ export const API_ENDPOINTS = {
   skills: {
     getAll: `${API_BASE_URL}/Skill/GetAllSkill`,
     getById: (id: number) => `${API_BASE_URL}/Skill/GetSkillbyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/Skill/insertupadateSkill`,
+    insertUpdate: `${API_BASE_URL}/Skill/InsertUpdateSkill`,
     delete: (id: number) => `${API_BASE_URL}/Skill/deleteSkill/${id}`,
   },
 
@@ -40,7 +40,7 @@ export const API_ENDPOINTS = {
     getAll: `${API_BASE_URL}/Subskill/GetAllSubskill`,
     getById: (id: number) => `${API_BASE_URL}/Subskill/GetSubskillbyId/${id}`,
     getBySkill: (skillId: number) => `${API_BASE_URL}/Subskill/GetSubskillsBySkillId/${skillId}`,
-    insertUpdate: `${API_BASE_URL}/Subskill/insertupadateSubskill`,
+    insertUpdate: `${API_BASE_URL}/Subskill/InsertUpdateSubskill`,
     delete: (id: number) => `${API_BASE_URL}/Subskill/deleteSubskill/${id}`,
   },
 
@@ -48,7 +48,7 @@ export const API_ENDPOINTS = {
   users: {
     getAll: `${API_BASE_URL}/user/GetAllusers`,
     getById: (id: number) => `${API_BASE_URL}/Users/GetUserbyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/Users/insertupadateUser`,
+    insertUpdate: `${API_BASE_URL}/Users/InsertUpdateUser`,
     delete: (id: number) => `${API_BASE_URL}/User/deleteUser/${id}`,
   },
 
@@ -66,14 +66,14 @@ export const API_ENDPOINTS = {
   technologyProfiles: {
     getAll: `${API_BASE_URL}/MapTechnologyProfile/GetAllMapTechnologyProfile`,
     getById: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/GetMapTechnologyProfilebyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/MapTechnologyProfile/insertupdateMapTechnologyProfile`,
+    insertUpdate: `${API_BASE_URL}/MapTechnologyProfile/InsertUpdateMapTechnologyProfile`,
     delete: (id: number) => `${API_BASE_URL}/MapTechnologyProfile/deleteMapTechnologyProfile/${id}`,
   },
 
   // Profile-User Mappings
   profileUsers: {
     getAll: `${API_BASE_URL}/MapToProfileUser/GetAllProfileUser`,
-    getByUser: (userId: number) => `${API_BASE_URL}/MapToProfileUser/GetPofileUserById/${userId}`,
+    getByUser: (userId: number) => `${API_BASE_URL}/MapToProfileUser/GetProfileUserById/${userId}`,
     insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
     delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
   },
