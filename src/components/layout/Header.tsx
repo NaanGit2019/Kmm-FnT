@@ -12,7 +12,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
-
+// Header component with title, optional subtitle, user avatar, and dropdown menu
 interface HeaderProps {
   title: string;
   subtitle?: string;
