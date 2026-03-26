@@ -31,7 +31,7 @@ export const API_ENDPOINTS = {
   skills: {
     getAll: `${API_BASE_URL}/Skill/GetAllSkill`,
     getById: (id: number) => `${API_BASE_URL}/Skill/GetSkillbyId/${id}`,
-    insertUpdate: `${API_BASE_URL}/Skill/InsertUpdateSkill`,
+    insertUpdate: `${API_BASE_URL}/Skill/insertupadateSkill`,
     delete: (id: number) => `${API_BASE_URL}/Skill/deleteSkill/${id}`,
   },
 
@@ -40,7 +40,7 @@ export const API_ENDPOINTS = {
     getAll: `${API_BASE_URL}/Subskill/GetAllSubskill`,
     getById: (id: number) => `${API_BASE_URL}/Subskill/GetSubskillbyId/${id}`,
     getBySkill: (skillId: number) => `${API_BASE_URL}/Subskill/GetSubskillsBySkillId/${skillId}`,
-    insertUpdate: `${API_BASE_URL}/Subskill/InsertUpdateSubskill`,
+    insertUpdate: `${API_BASE_URL}/Subskill/insertupdateSubskill`,
     delete: (id: number) => `${API_BASE_URL}/Subskill/deleteSubskill/${id}`,
   },
 
@@ -76,6 +76,14 @@ export const API_ENDPOINTS = {
     getByUser: (userId: number) => `${API_BASE_URL}/MapToProfileUser/GetProfileUserById/${userId}`,
     insertUpdate: `${API_BASE_URL}/MapToProfileUser/InsertOrUpdateProfileUser`,
     delete: (id: number) => `${API_BASE_URL}/MapToProfileUser/DeleteProfileUser/${id}`,
+  },
+
+  // SkillMap Mappings
+  skillMaps: {
+    getAll: `${API_BASE_URL}/MapSkillMap/GetAllMapSkillMap`,
+    getByUser: (userId: number) => `${API_BASE_URL}/MapSkillMap/GetMapSkillMapbyId/${userId}`,
+    insertUpdate: `${API_BASE_URL}/MapSkillMap/insertupdateMapSkillMap`,
+    delete: (id: number) => `${API_BASE_URL}/MapSkillMap/deleteMapSkillMap/${id}`,
   },
 
   // Skill Matrix

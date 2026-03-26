@@ -55,7 +55,7 @@ apiClient.interceptors.response.use(
     (error) => {
         const message = error.response?.data?.message || error.message || 'An error occurred';
         const status = error.response?.status;
-        
+
         // Log details for 400/4xx errors
         if (status && status >= 400 && status < 500) {
             console.error(`API Error [${status}]:`, message);
@@ -64,7 +64,7 @@ apiClient.interceptors.response.use(
             console.error('Request Data:', error.config?.data);
             console.error('Response Data:', error.response?.data);
         }
-        
+
         return Promise.reject(new Error(message));
     }
 );
@@ -143,8 +143,15 @@ export const technologyProfileApi = {
 
 // Profile-User Mapping API
 export const profileUserApi = {
-    getAll: () => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getAll).then(res => res.data),
-    getByUser: (userId: number) => apiClient.get<MapProfileUser[]>(API_ENDPOINTS.profileUsers.getByUser(userId)).then(res => res.data),
+    getAll: () => apiClient.get(API_ENDPOINTS.profileUsers.getAll).then(res => {
+        // Backend wraps list into { status,message,data:{result:[...] }}
+        const payload = (res.data as any)?.result ?? (res.data?.data?.result ?? []);
+        return Array.isArray(payload) ? payload : [];
+    }),
+    getByUser: (userId: number) => apiClient.get(API_ENDPOINTS.profileUsers.getByUser(userId)).then(res => {
+        const payload = (res.data as any)?.result ?? (res.data?.data?.result ?? []);
+        return Array.isArray(payload) ? payload : [];
+    }),
     insertUpdate: (data: MapProfileUser) => apiClient.post<MapProfileUser>(API_ENDPOINTS.profileUsers.insertUpdate, data).then(res => res.data),
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.profileUsers.delete(id)).then(res => res.data),
 };

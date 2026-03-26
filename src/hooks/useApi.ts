@@ -387,12 +387,12 @@ export function useTechnologyProfileMutation() {
 
 // Profile-User Mapping Hooks
 export function useProfileUsers() {
-    return useQuery({
+    return useQuery<MapProfileUser[], Error>({
         queryKey: queryKeys.profileUsers,
         queryFn: profileUserApi.getAll,
-        select: (data: any) => Array.isArray(data) ? data : [],
+        select: (data) => Array.isArray(data) ? data : [],
         staleTime: 0,
-        refetchOnFocus: true,
+        refetchOnWindowFocus: true,
     });
 }
 // Profile-User by id Hooks
