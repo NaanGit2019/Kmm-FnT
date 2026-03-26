@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { Header } from '@/components/layout/Header';
 import { mockTechnologies, mockSkills, mockSubskills, mockGrades } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +27,13 @@ const sampleMatrix: Record<number, number> = {
 };
 
 export default function SkillMatrix() {
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'matrix');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Skill Matrix." />;
+  }
+
   const [selectedTechnology, setSelectedTechnology] = useState<string>('all');
   const [matrix, setMatrix] = useState<Record<number, number>>(sampleMatrix);
 

@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/Header';
 import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Cpu, Layers, Users, Award, TrendingUp, Activity } from 'lucide-react';
-import { useTechnology, useSkills, useProfiles, useGrades, useTechnologyTypes } from '@/hooks/useApi';
+import { useTechnology, useTechnologySkills, useTechnologyProfiles, useSkills, useProfiles, useGrades } from '@/hooks/useApi';
 import {
   BarChart,
   Bar,
@@ -29,12 +29,43 @@ const CHART_COLORS = [
 ];
 
 export default function Dashboard() {
+  console.log('Dashboard mounted');
   const { data: technologies = [], isLoading: techLoading } = useTechnology();
   const { data: technologyTypes = [], isLoading: typesLoading } = useTechnologyTypes();
+  const { data: technologySkills = [], isLoading: techSkillsLoading } = useTechnologySkills();
+  const { data: technologyProfiles = [], isLoading: techProfilesLoading } = useTechnologyProfiles();
   const { data: skills = [], isLoading: skillsLoading } = useSkills();
   const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
   const { data: grades = [], isLoading: gradesLoading } = useGrades();
 
+  const isLoading = techLoading || techSkillsLoading || techProfilesLoading || skillsLoading || profilesLoading || gradesLoading;
+
+  const mostUsedTechnology = useMemo(() => {
+    const countByTech = new Map<number, number>();
+
+    // technologySkills.forEach((item) => {
+    //   if (!item?.technologyId) return;
+    //   countByTech.set(item.technologyId, (countByTech.get(item.technologyId) || 0) + 1);
+    // });
+
+    technologyProfiles.forEach((item) => {
+      if (!item?.technologyId) return;
+      countByTech.set(item.technologyId, (countByTech.get(item.technologyId) || 0) + 1);
+    });
+
+    let topTechId = -1;
+    let topCount = 0;
+
+    for (const [technologyId, count] of countByTech.entries()) {
+      if (count > topCount) {
+        topCount = count;
+        topTechId = technologyId;
+      }
+    }
+
+    const technology = technologies.find((t) => t.id === topTechId);
+    return { technology, count: topCount };
+  }, [technologySkills, technologyProfiles, technologies]);
   const isLoading = techLoading || typesLoading || skillsLoading || profilesLoading || gradesLoading;
 
   const technologyTypeData = useMemo(() => {
@@ -53,6 +84,8 @@ export default function Dashboard() {
       value: Math.floor(Math.random() * 30) + 10 // This would be actual data from API
     }));
   }, [skills]);
+
+
 
   if (isLoading) {
     return (
@@ -218,24 +251,17 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Most Used Technology */}
         <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Recent Technologies</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {technologies.slice(0, 4).map((tech) => (
-              <div
-                key={tech.id}
-                className="flex items-center gap-3 p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Cpu className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">{tech.title}</p>
-                  <p className="text-sm text-muted-foreground">{tech.type}</p>
-                </div>
-              </div>
-            ))}
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            Most Used Technology
+          </h3>
+          <div className="flex items-center gap-2">
+            <p className="text-lg font-medium text-foreground">
+              {mostUsedTechnology.technology
+                ? `${mostUsedTechnology.technology.title} = ${mostUsedTechnology.count}`
+                : 'No usage data available yet.'}
+            </p>
           </div>
         </div>
       </div>

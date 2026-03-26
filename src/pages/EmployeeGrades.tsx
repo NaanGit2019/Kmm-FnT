@@ -1,4 +1,12 @@
-﻿import { useState, useMemo } from 'react';
+﻿import { useEffect, useState, useMemo } from 'react';
+import useAuth from '@/hooks/useAuth';
+import {
+  canViewModule,
+  canCreateModule,
+  canEditModule,
+  canDeleteModule,
+  normalizeRole
+} from '@/lib/accessControl';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,43 +17,44 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Save, User, Award, TrendingUp } from 'lucide-react';
+import { AccessDenied } from '@/components/AccessDenied';
 import { toast } from 'sonner';
 import {
-    useGrades,
-    useSkills,
-    useSubskills,
-    useProfiles,
-    useUsers,
-    useTechnologies,
-    useSkillMaps,
-    useProfileUsers,
-    useSkillMapMutation,
-    useTechnologySkills,
-    useTechnologyProfiles,
-    useSkillMapsByUser,
-    useTechnologyProfilesbyprofileid,
-    useSkillByUser,
-    useSubSkillByUser,
-    useTechnologyByUser,
-    useTechnologyskillByUser
+  useGrades,
+  useSkills,
+  useSubskills,
+  useProfiles,
+  useUsers,
+  useTechnology,
+  useSkillMaps,
+  useProfileUsers,
+  useSkillMapMutation,
+  useTechnologySkills,
+  useTechnologyProfiles,
+  useSkillMapsByUser,
+  useTechnologyProfilesbyprofileid,
+  useSkillByUser,
+  useSubSkillByUser,
+  useTechnologyByUser,
+  useTechnologyskillByUser
 } from '@/hooks/useApi';
 import type { MapSkillmap } from '@/types';
 import {
-    StatusCards,
-    TechnologyTabs,
-    GradeLegend,
-    SkillGradeTable,
-    EmployeeInfoCard,
-    EmployeeSelector
+  StatusCards,
+  TechnologyTabs,
+  GradeLegend,
+  SkillGradeTable,
+  EmployeeInfoCard,
+  EmployeeSelector
 
 } from '../components/Employee-Grades/Index';
 
 const gradeColors: Record<string, string> = {
-    'Level_1': 'bg-slate-500',
-    'Level_2': 'bg-blue-500',
-    'L3': 'bg-green-500',
-    'L4': 'bg-purple-500',
-    'L5': 'bg-amber-500',
+  'Level_1': 'bg-slate-500',
+  'Level_2': 'bg-blue-500',
+  'L3': 'bg-green-500',
+  'L4': 'bg-purple-500',
+  'L5': 'bg-amber-500',
 };
 
 export default function EmployeeGrades() {
@@ -56,42 +65,163 @@ export default function EmployeeGrades() {
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
   const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
+  //console.log("aa", profileUsers)
+  //const { data: technologySkills = [] } = useTechnologySkills();
+  const { data: technologyProfiles = [] } = useTechnologyProfiles();
+  const { data: technologyProfilesbyprofileid = [] } = useTechnologyProfilesbyprofileid();
+  const { data: technologies = [], isLoading: technologyloading } = useTechnology();
   const { insertUpdate } = useSkillMapMutation();
 
-    const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
-        usersLoading || skillMapsLoading || profileUsersLoading;
+  const isLoading = gradesLoading || skillsLoading || subskillsLoading || profilesLoading ||
+    usersLoading || skillMapsLoading || profileUsersLoading;
 
-    const [selectedUserId, setSelectedUserId] = useState<number>(0);
-    const [pendingChanges, setPendingChanges] = useState<Map<number, number>>(new Map());
-    const [hasChanges, setHasChanges] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
+  const role = normalizeRole(user);
+  const isAllowed = canViewModule(user, 'employee-grades');
+  const canEdit = canEditModule(user, 'employee-grades');
 
-  const selectedUser = users.find(u => u.id === selectedUserId);
-  const userProfile = profileUsers.find(pu => pu.userId === selectedUserId);
-  const profile = userProfile ? profiles.find(p => p.id === userProfile.profileId) : null;
+  const currentUserId = Number(user?.user_id ?? 0);
 
-  const userSkillMaps = useMemo(() => 
-    skillMaps.filter(sm => sm.userId === selectedUserId),
-    [skillMaps, selectedUserId]
+  const [selectedUserId, setSelectedUserId] = useState<number>(0);
+  const [pendingChanges, setPendingChanges] = useState<Map<number, number>>(new Map());
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (role === 'employee' && currentUserId > 0 && users.length > 0) {
+      const self = users.find(u => u.id === currentUserId || Number(u.id) === currentUserId);
+      if (self) {
+        setSelectedUserId(self.id);
+      }
+    } else if (role !== 'employee' && users.length > 0 && selectedUserId === 0) {
+      setSelectedUserId(users[0].id);
+    }
+  }, [role, users, currentUserId, selectedUserId]);
+
+  const selectedUserFromList = users.find(u => Number(u.id) === selectedUserId);
+  const employeeSelf = role === 'employee' ? users.find(u => Number(u.id) === currentUserId) : undefined;
+
+  const selectedUser = role === 'employee'
+    ? employeeSelf || selectedUserFromList
+    : selectedUserFromList;
+
+  const selectedId = role === 'employee'
+    ? (employeeSelf ? Number(employeeSelf.id) : currentUserId)
+    : (selectedUser ? Number(selectedUser.id) : selectedUserId);
+
+  const { data: useSkillMapsByUserdata = [], isLoading: useSkillMapsByUserLoading } = useSkillMapsByUser(selectedId);
+
+  //matrix
+  const { data: userSkills = [], isLoading: skillsforuserLoading, refetch: fetchskill } = useSkillByUser(selectedId);
+  const { data: userSubSkills = [], isLoading: subskillsforuserLoading, refetch: fetchSubskill } = useSubSkillByUser(selectedUserId);
+  const { data: userTechnology = [], isLoading: technologyforuserLoading, refetch: fetchtechnology } = useTechnologyByUser(selectedUserId);
+  const { data: technologySkills = [], isLoading: technologySkillsisloading, refetch: fetchtechnologyskill } = useTechnologyskillByUser(selectedUserId);
+
+  //console.log("a", profileUsers);
+  const userProfile = Array.isArray(profileUsers) ? profileUsers.filter(pu => pu.userId === selectedUserId) : [];
+
+
+  //console.log("selectedUserId", selectedUserId);
+  //console.log("userSkills", userSkills);
+  //console.log("userSubSkills", userSubSkills);
+  //console.log("userTechnology", userTechnology);
+  const profileIds = userProfile.map(up => up.profileId);
+
+  const profile = userProfile ? profiles.find(p => profileIds.includes(p.id)) : null;
+  console.log("profile", profile);
+
+  /*
+  User-ID-->ProfileUser-->TechnologyProfile-->TechnologySKill--->Skill-->Subskill
+  */
+
+  // Get technologies for user's profile (hierarchical: User → Profile → Technologies)
+  //console.log("technologyProfiles", technologyProfilesbyprofileid);
+  const techIds = useMemo(() => {
+    if (!profileIds) return [];
+
+    else return technologyProfilesbyprofileid
+      .filter(tp => profileIds.includes(tp.profileId))
+      .map(tp => tp.technologyId)
+  }, [technologyProfilesbyprofileid, technologies, userProfile]);
+
+  //const userTechnologies = useMemo(() => {
+  //    if (!userProfile) return [];
+
+  //console.log("techIds", techIds)
+  //    return technologies.filter(t => techIds.includes(t.id) && t.isactive);
+  //}, [technologyProfiles, technologies, userProfile]);
+  //////console.log("userTechnologies", userTechnologies)//------>Technologies which are mapped to User Id
+
+  //console.log("technologySkills", technologySkills);
+  const userTechnologiesskill = useMemo(() => {
+    if (!userProfile) return [];
+    return technologySkills.filter(t => techIds.includes(t.technologyId) && t.isactive);
+  }, [technologyProfiles, technologySkills, userProfile]);
+  ////console.log("usertechnologySkills", userTechnologiesskill)
+
+  //need to get the subksill list based on the userid and technologid 
+  // Calculate total subskills for all assigned technologies
+  const totalSubskills = useMemo(() => {
+    const techSkillIds = technologySkills
+      .filter(ts => userTechnology.some(t => t.id == ts.technologyId))
+      .map(ts => ts.skillId);
+
+    return subskills.filter(ss =>
+      techSkillIds.includes(ss.skillId) && ss.isactive
+    ).length;
+  }, [technologySkills, userTechnology, subskills]);
+
+
+  const userSkillMaps = useMemo(() =>
+    useSkillMapsByUserdata,//.filter(sm => sm.userId === selectedUserId),
+    [useSkillMapsByUserdata, selectedUserId]
   );
+  //console.log("userSkillMaps", userSkillMaps)
+  ////console.log("Skills", skills);
 
-  const skillsWithSubskills = useMemo(() => 
+
+  const skillsWithSubskillsall = useMemo(() =>
     skills.filter(s => s.isactive).map(skill => ({
       ...skill,
       subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
     })),
     [skills, subskills]
   );
+  const skillsWithSubskills = useMemo(() =>
+    skills.filter(s => s.isactive).map(skill => ({
+      ...skill,
+      subskills: subskills.filter(ss => ss.skillId === skill.id && ss.isactive)
+    })),
+    [skills, subskills]
+  );
+  ////console.log("skillsWithSubskills", skillsWithSubskills)
+
 
   const getGradeForSubskill = (subskillId: number) => {
     // Check pending changes first
     if (pendingChanges.has(subskillId)) {
       return pendingChanges.get(subskillId) || 0;
     }
+    //console.log(pendingChanges)
     const mapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
+    //console.log(mapping)
     return mapping?.gradeid || 0;
   };
+  console.log(userSkillMaps)
+  const skillsWithGrades = useMemo(() => {
+    return skillsWithSubskillsall.map(skill => ({
+      ...skill,
+      subskills: skill.subskills.map(subskill => {
+        const subskillGrade = useSkillMapsByUserdata.find(usm => usm.subskillId === subskill.id);
+        return {
+          ...subskill,
+          gradeId: subskillGrade?.gradeid || null
+        };
+      })
+    }));
+  }, [skillsWithSubskillsall, useSkillMapsByUserdata]);
 
+  // //console.log("skillsWithGrades", skillsWithGrades);
   const handleGradeChange = (subskillId: number, gradeId: number) => {
     setHasChanges(true);
     const newPendingChanges = new Map(pendingChanges);
@@ -99,68 +229,72 @@ export default function EmployeeGrades() {
     setPendingChanges(newPendingChanges);
   };
 
-    const handleSave = async () => {
-        setIsSaving(true);
-        const promises: Promise<void>[] = [];
+  const handleSave = async () => {
+    if (!canEdit) {
+      toast.error('You are not permitted to update grades.');
+      return;
+    }
+    setIsSaving(true);
+    const promises: Promise<void>[] = [];
 
-        pendingChanges.forEach((gradeId, subskillId) => {
-            const existingMapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
+    pendingChanges.forEach((gradeId, subskillId) => {
+      const existingMapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
 
-            const data: MapSkillmap = {
-                id: existingMapping?.id || 0,
-                subskillId,
-                userId: selectedUserId,
-                gradeid: gradeId,
-                isactive: true
-            };
+      const data: MapSkillmap = {
+        id: existingMapping?.id || 0,
+        subskillId,
+        userId: selectedUserId,
+        gradeid: gradeId,
+        isactive: true
+      };
 
-            promises.push(
-                new Promise((resolve, reject) => {
-                    insertUpdate.mutate(data, {
-                        onSuccess: () => resolve(),
-                        onError: (error) => reject(error)
-                    });
-                })
-            );
-        });
+      promises.push(
+        new Promise((resolve, reject) => {
+          insertUpdate.mutate(data, {
+            onSuccess: () => resolve(),
+            onError: (error) => reject(error)
+          });
+        })
+      );
+    });
 
-        try {
-            await Promise.all(promises);
-            toast.success('Employee grades saved successfully!');
-            setHasChanges(false);
-            setPendingChanges(new Map());
-        } catch (error) {
-            toast.error('Failed to save some grades');
-        }
-    };
+    try {
+      await Promise.all(promises);
+      toast.success('Employee grades saved successfully!');
+      setHasChanges(false);
+      setPendingChanges(new Map());
+    } catch (error) {
+      toast.error('Failed to save some grades');
+    }
+  };
 
-    const calculateProgress = () => {
-        const totalSubskills = skillsWithSubskills.reduce((acc, s) => acc + s.subskills.length, 0);
-        const gradedSubskills = userSkillMaps.length + pendingChanges.size;
-        return totalSubskills > 0 ? (gradedSubskills / totalSubskills) * 100 : 0;
-    };
+  const calculateProgress = () => {
+    const totalSubskills = skillsWithSubskills.reduce((acc, s) => acc + s.subskills.length, 0);
+    const gradedSubskills = userSkillMaps.length + pendingChanges.size;
+    return totalSubskills > 0 ? (gradedSubskills / totalSubskills) * 100 : 0;
+  };
 
-    const calculateAverageGrade = () => {
-        const allGrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
-        pendingChanges.forEach((grade) => allGrades.push(grade));
-        const validgrades = allGrades.filter(g => g > 0);
+  const calculateAverageGrade = () => {
+    const allGrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
+    pendingChanges.forEach((grade) => allGrades.push(grade));
+    const validgrades = allGrades.filter(g => g > 0);
 
-        if (validgrades.length === 0) return '0';
-        const total = validgrades.reduce((acc, grade) => acc + grade, 0);
-        return (total / validgrades.length).toFixed(1);
-    };
-    //const calculateaveragegrade = () => {
-    //    const allgrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
-    //    pendingChanges.forEach((grade) => allgrades.push(grade));
-    //    const validgrades = allgrades.filter(g => g > 0);
-    //    if (validgrades.length === 0) return '0';
-    //    const total = validgrades.reduce((acc, grade) => acc + grade, 0);
-    //    return (total / validgrades.length).toFixed(1);
-    //};
+    if (validgrades.length === 0) return '0';
+    const total = validgrades.reduce((acc, grade) => acc + grade, 0);
+    return (total / validgrades.length).toFixed(1);
+  };
+  //const calculateaveragegrade = () => {
+  //    const allgrades = [...userSkillMaps.map(sm => sm.gradeid || 0)];
+  //    pendingChanges.forEach((grade) => allgrades.push(grade));
+  //    const validgrades = allgrades.filter(g => g > 0);
+  //    if (validgrades.length === 0) return '0';
+  //    const total = validgrades.reduce((acc, grade) => acc + grade, 0);
+  //    return (total / validgrades.length).toFixed(1);
+  //};
 
-    const getInitials = (name: string) => {
-        return name.split(' ').map(n => n[0]).join('').toUpperCase();
-    };
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
 
   if (isLoading) {
     return (
@@ -177,10 +311,18 @@ export default function EmployeeGrades() {
     );
   }
 
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Employee Grades." />;
+  }
+
+  if (role === 'employee' && currentUserId <= 0) {
+    return <AccessDenied message="Employee Grades is available only for logged-in employees." />;
+  }
+
   return (
     <div className="space-y-6">
-      <Header 
-        title="Employee Grades" 
+      <Header
+        title="Employee Grades"
         subtitle="Apply and manage competency grades for individual employees"
       />
 
@@ -191,28 +333,34 @@ export default function EmployeeGrades() {
             <CardTitle className="text-base">Select Employee</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select 
-              value={selectedUserId.toString()} 
-              onValueChange={(v) => {
-                setSelectedUserId(parseInt(v));
-                setHasChanges(false);
-                setPendingChanges(new Map());
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select an employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.filter(u => u.isactive).map(user => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {user.name} - {user.department}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {role === 'employee' ? (
+              <div className="p-3 rounded border border-muted text-sm">
+                {selectedUser ? selectedUser.name : 'You are not assigned to any employee record.'}
+              </div>
+            ) : (
+              <Select
+                value={selectedUserId.toString()}
+                onValueChange={(v) => {
+                  setSelectedUserId(parseInt(v));
+                  setHasChanges(false);
+                  setPendingChanges(new Map());
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select an employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.filter(u => u.isactive).map(user => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {user.name} - {user.department}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </CardContent>
         </Card>
 
@@ -272,7 +420,7 @@ export default function EmployeeGrades() {
                   </div>
                 </div>
               </div>
-              <Button onClick={handleSave} disabled={!hasChanges || insertUpdate.isPending}>
+              <Button onClick={handleSave} disabled={!canEdit || !hasChanges || insertUpdate.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {insertUpdate.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -336,9 +484,10 @@ export default function EmployeeGrades() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Select 
+                            <Select
                               value={currentGradeId.toString()}
                               onValueChange={(v) => handleGradeChange(subskill.id, parseInt(v))}
+                              disabled={!canEdit}
                             >
                               <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Select grade" />
@@ -351,7 +500,7 @@ export default function EmployeeGrades() {
                                   </SelectItem>
                                 ))}
                               </SelectContent>
-                            </Select>
+                            </Select>SS
                           </TableCell>
                         </TableRow>
                       );

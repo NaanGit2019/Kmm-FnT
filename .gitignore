@@ -101,3 +101,4 @@ _ReSharper*/
 *.dll
 *.exe
 *.pdb
+/.vs/slnx.sqlite

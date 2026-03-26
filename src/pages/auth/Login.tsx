@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import cherryBg from '@/assets/cherry-blossom-bg.jpg';
-import { set } from 'date-fns';
+import useAuth from '@/hooks/useAuth';
 
 // Floating petal component
 function FloatingPetal({ delay, left, size }: { delay: number; left: string; size: number }) {
@@ -30,7 +29,7 @@ function FloatingPetal({ delay, left, size }: { delay: number; left: string; siz
 type View = 'login' | 'reset';
 
 export default function Login() {
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const [view, setView] = useState<View>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -46,48 +45,43 @@ export default function Login() {
     }
     setIsLoading(true);
     try {
-      const response = await fetch("https://ngo-userauth-dev-api.saldobooks.com/user/signin/",
-        {
-          method: "POST",
-          headers: {
-            'accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            application_id: [3],
-            device_type_id: 2,
-            username: username,
-            password: password
-          })
-        }
-      );
+      await login(username, password);
+      // const response = await fetch("https://ngo-userauth-dev-api.saldobooks.com/user/signin/",
+      //   {
+      //     method: "POST",
+      //     headers: {
+      //       'accept': 'application/json',
+      //       'Content-Type': 'application/json'
+      //     },
+      //     body: JSON.stringify({
+      //       application_id: [3],
+      //       device_type_id: 2,
+      //       username: username,
+      //       password: password
+      //     })
+      //   }
+      // );
 
-      const data = await response.json();
-      console.log("Login Response:", data);
-      if (response.ok) {
-        const token = data.access_token || data.token;
-        if (!token) {
-          toast.error('Token not found in response');
-          setIsLoading(false);
-        }
-        localStorage.setItem('token', token);
-        toast.success(`Login successful!`);
-        navigate('/');
-      } else {
-        toast.error(data.message || 'Login failed');
-      }
+      // const data = await response.json();
+      // console.log("Login Response:", data);
+      // if (response.ok) {
+      //   const token = data.access_token || data.token;
+      //   if (!token) {
+      //     toast.error('Token not found in response');
+      //     setIsLoading(false);
+      //   }
+      //   localStorage.setItem('token', token);
+      //   toast.success(`Login successful!`);
+      //   navigate('/');
+      // } else {
+      //   toast.error(data.message || 'Login failed');
+      // }
     } catch (error) {
       console.error('Login error:', error);
       toast.error('something went wrong');
     }
     setIsLoading(false);
   };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    toast.success('Logged out successfully');
-    navigate('/login');
-  }
 
   // Adjust based on actual response structure);
 

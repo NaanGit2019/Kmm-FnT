@@ -1,4 +1,7 @@
 import { useState, useMemo } from 'react';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { Header } from '@/components/layout/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +30,13 @@ import {
 import type { MapTechnologyProfile, MapTechnologySkill, MapProfileUser } from '@/types';
 
 export default function Mappings() {
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'mappings');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Mappings." />;
+  }
+
   const { data: profilesData, isLoading: profilesLoading } = useProfiles();
   const { data: technologiesData, isLoading: technologiesLoading } = useTechnology();
   const { data: skillsData, isLoading: skillsLoading } = useSkills();
@@ -54,32 +64,21 @@ export default function Mappings() {
   const [showTechProfileDialog, setShowTechProfileDialog] = useState(false);
   const [newTechProfile, setNewTechProfile] = useState({ technologyId: 0, profileId: 0, isactive: true });
   const [editingTechProfile, setEditingTechProfile] = useState<MapTechnologyProfile | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteType, setDeleteType] = useState<'techProfile' | 'techSkill' | 'profileUser' | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const [showTechSkillDialog, setShowTechSkillDialog] = useState(false);
   const [newTechSkill, setNewTechSkill] = useState({ technologyId: 0, skillId: 0, isactive: true });
   const [editingTechSkill, setEditingTechSkill] = useState<MapTechnologySkill | null>(null);
 
   const [showProfileUserDialog, setShowProfileUserDialog] = useState(false);
-  const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0, isactive: true });
   const [editingProfileUser, setEditingProfileUser] = useState<MapProfileUser | null>(null);
+  const [newProfileUser, setNewProfileUser] = useState({ profileId: 0, userId: 0, isactive: true });
 
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleteType, setDeleteType] = useState<'techProfile' | 'techSkill' | 'profileUser' | null>(null);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-
-  // Filter states
   const [techProfileFilter, setTechProfileFilter] = useState<'active' | 'inactive'>('active');
   const [techSkillFilter, setTechSkillFilter] = useState<'active' | 'inactive'>('active');
   const [profileUserFilter, setProfileUserFilter] = useState<'active' | 'inactive'>('active');
-
-  // Filter function
-  const filterByStatus = <T extends { isactive?: boolean }>(items: T[], filter: 'active' | 'inactive'): T[] => {
-    if (filter === 'active') return items.filter(item => item.isactive === true);
-    if (filter === 'inactive') return items.filter(item => item.isactive === false);
-    return items;
-  };
-
   const getTechnology = (id: number) => technologies.find(t => t.id === id);
   const getProfile = (id: number) => profiles.find(p => p.id === id);
   const getSkill = (id: number) => skills.find(s => s.id === id);
@@ -221,6 +220,10 @@ export default function Mappings() {
 
   const handleDeleteProfileUser = (id: number) => {
     deleteProfileUser.mutate(id);
+  };
+
+  const filterByStatus = (data: any[], status: 'active' | 'inactive') => {
+    return data.filter(item => (status === 'active' ? item.isactive : !item.isactive));
   };
 
   if (isLoading) {

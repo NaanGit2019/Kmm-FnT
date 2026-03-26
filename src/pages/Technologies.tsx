@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
 import { useTechnology, useTechnologyMutation, useTechnologyTypes } from '@/hooks/useApi';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule, canCreateModule, canEditModule, canDeleteModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import type { Technology } from '@/types';
 import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import {
@@ -32,6 +35,16 @@ export default function Technologies() {
   const { data: technologiesData, isLoading: isTechnologiesLoading, error } = useTechnology();
   const { data: technologyTypesData, isLoading: isTechnologyTypesLoading } = useTechnologyTypes();
   const { insertUpdate, deleteMutation } = useTechnologyMutation();
+
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'technologies');
+  const canCreate = canCreateModule(user, 'technologies');
+  const canEdit = canEditModule(user, 'technologies');
+  const canDelete = canDeleteModule(user, 'technologies');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Technologies." />;
+  }
 
   const technologies = technologiesData ?? [];
   const technologyTypes = technologyTypesData ?? [];
@@ -85,12 +98,15 @@ export default function Technologies() {
   ];
 
   const handleAdd = () => {
+    if (!canCreate) return;
     setEditingTechnology(null);
     setFormData({ title: '', type: '', isactive: true });
     setDialogOpen(true);
   };
 
   const handleEdit = (tech: Technology) => {
+    if (!canEdit) return;
+
     setEditingTechnology(tech);
     setFormData({
       title: tech.title || '',
@@ -101,6 +117,7 @@ export default function Technologies() {
   };
 
   const handleDelete = (tech: Technology) => {
+    if (!canDelete) return;
     setDeletingTechnology(tech);
     setDeleteDialogOpen(true);
   };
@@ -164,10 +181,10 @@ export default function Technologies() {
               searchKey="title"
               data={filterByStatus(technologies, statusFilter)}
               columns={columns}
-              onAdd={handleAdd}
+              onAdd={canCreate ? handleAdd : undefined}
               addLabel="Add Technology"
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onEdit={canEdit ? handleEdit : undefined}
+              onDelete={canDelete ? handleDelete : undefined}
               headerActions={
                 <ActiveInactiveSelector
                   value={statusFilter}

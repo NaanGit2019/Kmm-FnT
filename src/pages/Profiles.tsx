@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule, canCreateModule, canEditModule, canDeleteModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { Header } from '@/components/layout/Header';
 import { DataTable, StatusBadge, Column } from '@/components/ui/data-table';
 import { useProfiles, useProfileMutation } from '@/hooks/useApi';
@@ -20,6 +23,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 export default function Profiles() {
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'profiles');
+  const canCreate = canCreateModule(user, 'profiles');
+  const canEdit = canEditModule(user, 'profiles');
+  const canDelete = canDeleteModule(user, 'profiles');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Profiles." />;
+  }
+
   const { data: profiles = [], isLoading, error } = useProfiles();
   const { insertUpdate, deleteMutation } = useProfileMutation();
 
@@ -29,12 +42,12 @@ export default function Profiles() {
   const [deletingProfile, setDeletingProfile] = useState<Profile | null>(null);
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive'>('active');
 
-  const filterByStatus = (items: Profile[], filter:'active' | 'inactive'): Profile[] => {
+  const filterByStatus = (items: Profile[], filter: 'active' | 'inactive'): Profile[] => {
     if (filter === 'active') return items.filter(item => item.isactive);
     if (filter === 'inactive') return items.filter(item => !item.isactive);
     return items;
   };
-  
+
   const [formData, setFormData] = useState({
     title: '',
     isactive: true,
@@ -42,20 +55,20 @@ export default function Profiles() {
 
   const columns: Column<Profile>[] = [
     // { key: 'id', header: 'ID' },
-    { 
-      key: 'title', 
+    {
+      key: 'title',
       header: 'Title',
       render: (item) => (
         <span className="font-medium text-foreground">{item.title}</span>
       )
     },
-    { 
-      key: 'isactive', 
+    {
+      key: 'isactive',
       header: 'Status',
       render: (item) => <StatusBadge active={item.isactive} />
     },
-    { 
-      key: 'createdAt', 
+    {
+      key: 'createdAt',
       header: 'Created',
       render: (item) => item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '-'
     },
@@ -121,11 +134,11 @@ export default function Profiles() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Profiles" 
+      <Header
+        title="Profiles"
         subtitle="Manage employee profiles and roles"
       />
-      
+
       <div className="p-6">
         {isLoading ? (
           <div className="space-y-4">
@@ -134,26 +147,26 @@ export default function Profiles() {
           </div>
         ) : (
           <div className="bg-card rounded-xl border border-border animate-fade-in">
-          
+
 
             {/* Table */}
             <div className="overflow-x-auto">
               <DataTable
-  title="Profiles"
-  searchKey="title"
-  data={filterByStatus(profiles, statusFilter)}
-  columns={columns}
-  onAdd={handleAdd}
-  addLabel="Add Profile"
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-  headerActions={
-    <ActiveInactiveSelector
-      value={statusFilter}
-      onChange={setStatusFilter}
-    />
-  }
-/>
+                title="Profiles"
+                searchKey="title"
+                data={filterByStatus(profiles, statusFilter)}
+                columns={columns}
+                onAdd={canCreate ? handleAdd : undefined}
+                addLabel="Add Profile"
+                onEdit={canEdit ? handleEdit : undefined}
+                onDelete={canDelete ? handleDelete : undefined}
+                headerActions={
+                  <ActiveInactiveSelector
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                  />
+                }
+              />
             </div>
           </div>
         )}
@@ -167,12 +180,12 @@ export default function Profiles() {
               {editingProfile ? 'Edit Profile' : 'Add Profile'}
             </DialogTitle>
             <DialogDescription>
-              {editingProfile 
+              {editingProfile
                 ? 'Update the profile details below.'
                 : 'Fill in the details to add a new profile.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title *</Label>
@@ -183,7 +196,7 @@ export default function Profiles() {
                 placeholder="e.g., Frontend Developer"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <Label htmlFor="isactive">Active</Label>
               <Switch
@@ -193,7 +206,7 @@ export default function Profiles() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel

@@ -10,21 +10,26 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-
+import useAuth from '@/hooks/useAuth';
+// Header component with title, optional subtitle, user avatar, and dropdown menu
 interface HeaderProps {
   title: string;
   subtitle?: string;
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    toast.success('Logged out successfully');
-    navigate('/login');
-  }
+    logout();
+  };
+
+  const userName = user?.user_first_name || user?.username || '';
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
+
+  // Special rule: if user is exactly Karthikeyan, show only K
+  const avatarText = userName.toLowerCase() === 'karthikeyan' ? 'K' : userInitial;
+
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-card border-b border-border">
       <div>
@@ -56,7 +61,7 @@ export function Header({ title, subtitle }: HeaderProps) {
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="bg-primary text-primary-foreground">
-                  JD
+                  {avatarText}
                 </AvatarFallback>
               </Avatar>
             </Button>
@@ -64,8 +69,8 @@ export function Header({ title, subtitle }: HeaderProps) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">John Doe</p>
-                <p className="text-xs text-muted-foreground">john@company.com</p>
+                <p className="text-sm font-medium"><b>{userName || 'User'}</b></p>
+
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

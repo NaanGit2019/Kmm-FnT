@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { StatusBadge } from '@/components/ui/data-table';
 import { useSkills, useSubskills, useSkillMutation, useSubskillMutation } from '@/hooks/useApi';
+import useAuth from '@/hooks/useAuth';
+import { canViewModule, canCreateModule, canEditModule, canDeleteModule } from '@/lib/accessControl';
+import { AccessDenied } from '@/components/AccessDenied';
 import { ActiveInactiveSelector } from '@/components/ActiveInactiveSelector';
 import type { Skill, Subskill } from '@/types';
 import {
@@ -36,7 +39,7 @@ export default function Skills() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingSkill, setEditingSkill] = useState<Skill | null>(null);
   const [deletingSkill, setDeletingSkill] = useState<Skill | null>(null);
-  
+
   const [subskillDialogOpen, setSubskillDialogOpen] = useState(false);
   const [subskillDeleteDialogOpen, setSubskillDeleteDialogOpen] = useState(false);
   const [editingSubskill, setEditingSubskill] = useState<Subskill | null>(null);
@@ -46,8 +49,8 @@ export default function Skills() {
   const [expandedSkills, setExpandedSkills] = useState<number[]>([]);
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive'>('active');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const filterByStatus = (items: Skill[], filter:'active' | 'inactive'): Skill[] => {
+
+  const filterByStatus = (items: Skill[], filter: 'active' | 'inactive'): Skill[] => {
     if (filter === 'active') return items.filter(item => item.isactive === true);
     if (filter === 'inactive') return items.filter(item => item.isactive === false);
     return items;
@@ -55,27 +58,37 @@ export default function Skills() {
 
   const filterBySearch = (items: Skill[], search: string): Skill[] => {
     if (!search.trim()) return items;
-    return items.filter(item => 
+    return items.filter(item =>
       item.title?.toLowerCase().includes(search.toLowerCase())
     );
   };
-  
+
   const [formData, setFormData] = useState({
     title: '',
     isactive: true,
   });
 
+  const { user } = useAuth();
+  const isAllowed = canViewModule(user, 'skills');
+  const canCreate = canCreateModule(user, 'skills');
+  const canEdit = canEditModule(user, 'skills');
+  const canDelete = canDeleteModule(user, 'skills');
+
+  if (!isAllowed) {
+    return <AccessDenied message="You do not have access to Skills." />;
+  }
+
   const isLoading = skillsLoading || subskillsLoading;
 
   const toggleExpanded = (skillId: number) => {
-    setExpandedSkills(prev => 
-      prev.includes(skillId) 
+    setExpandedSkills(prev =>
+      prev.includes(skillId)
         ? prev.filter(id => id !== skillId)
         : [...prev, skillId]
     );
   };
 
-  const getSubskillsForSkill = (skillId: number) => 
+  const getSubskillsForSkill = (skillId: number) =>
     subskills.filter(s => s.skillId === skillId);
 
   const handleAdd = () => {
@@ -128,6 +141,7 @@ export default function Skills() {
   };
 
   const handleAddSubskill = (skillId: number) => {
+    if (!canEdit) return;
     setSelectedSkillId(skillId);
     setEditingSubskill(null);
     setSubskillFormData({ title: '', isactive: true });
@@ -135,6 +149,7 @@ export default function Skills() {
   };
 
   const handleEditSubskill = (subskill: Subskill) => {
+    if (!canEdit) return;
     setSelectedSkillId(subskill.skillId);
     setEditingSubskill(subskill);
     setSubskillFormData({ title: subskill.title || '', isactive: subskill.isactive ?? true });
@@ -142,6 +157,7 @@ export default function Skills() {
   };
 
   const handleDeleteSubskill = (subskill: Subskill) => {
+    if (!canDelete) return;
     setDeletingSubskill(subskill);
     setSubskillDeleteDialogOpen(true);
   };
@@ -193,11 +209,11 @@ export default function Skills() {
 
   return (
     <div className="min-h-screen">
-      <Header 
-        title="Skills" 
+      <Header
+        title="Skills"
         subtitle="Manage skills and sub-skills"
       />
-      
+
       <div className="p-6">
         {isLoading ? (
           <div className="space-y-4">
@@ -220,9 +236,11 @@ export default function Skills() {
                   />
                 </div>
                 <ActiveInactiveSelector value={statusFilter} onChange={setStatusFilter} />
-                <Button onClick={handleAdd}>
-                  Add Skill
-                </Button>
+                {canCreate && (
+                  <Button onClick={handleAdd}>
+                    Add Skill
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -233,7 +251,7 @@ export default function Skills() {
                 const isExpanded = expandedSkills.includes(skill.id);
 
                 return (
-                  <Collapsible 
+                  <Collapsible
                     key={skill.id}
                     open={isExpanded}
                     onOpenChange={() => toggleExpanded(skill.id)}
@@ -261,39 +279,42 @@ export default function Skills() {
                         </div>
                         <div className="flex items-center gap-3">
                           <StatusBadge active={skill.isactive} />
-                          <Button variant="outline" size="sm" onClick={() => handleEdit(skill)}>
+                          <Button variant="outline" size="sm" onClick={canEdit ? () => handleEdit(skill) : undefined} disabled={!canEdit}>
                             Edit
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="text-destructive hover:text-destructive"
-                            onClick={() => handleDelete(skill)}
+                            onClick={canDelete ? () => handleDelete(skill) : undefined}
+                            disabled={!canDelete}
                           >
                             Delete
                           </Button>
                         </div>
                       </div>
                     </div>
-                    
+
                     <CollapsibleContent>
                       <div className="pl-16 pr-4 pb-4 space-y-3 ">
-                        <Button 
-                          className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-2 text-xs "
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => handleAddSubskill(skill.id)}
-                        >
-                          <Plus className="w-4 h-4 mr-2 " />
-                          Add Subskill
-                        </Button>
+                        {canEdit && (
+                          <Button
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-2 text-xs "
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAddSubskill(skill.id)}
+                          >
+                            <Plus className="w-4 h-4 mr-2 " />
+                            Add Subskill
+                          </Button>
+                        )}
                         {skillSubskills.length === 0 ? (
                           <p className="text-sm text-muted-foreground py-2">
                             No sub-skills defined
                           </p>
                         ) : (
                           skillSubskills.map((subskill) => (
-                            <div 
+                            <div
                               key={subskill.id}
                               className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
                             >
@@ -304,7 +325,8 @@ export default function Skills() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-6 w-6 p-0"
-                                  onClick={() => handleEditSubskill(subskill)}
+                                  onClick={canEdit ? () => handleEditSubskill(subskill) : undefined}
+                                  disabled={!canEdit}
                                 >
                                   <Pencil className="w-3 h-3" />
                                 </Button>
@@ -312,7 +334,8 @@ export default function Skills() {
                                   size="sm"
                                   variant="ghost"
                                   className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteSubskill(subskill)}
+                                  onClick={canDelete ? () => handleDeleteSubskill(subskill) : undefined}
+                                  disabled={!canDelete}
                                 >
                                   <Trash2 className="w-3 h-3" />
                                 </Button>
@@ -338,12 +361,12 @@ export default function Skills() {
               {editingSkill ? 'Edit Skill' : 'Add Skill'}
             </DialogTitle>
             <DialogDescription>
-              {editingSkill 
+              {editingSkill
                 ? 'Update the skill details below.'
                 : 'Fill in the details to add a new skill.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="title">Title *</Label>
@@ -354,7 +377,7 @@ export default function Skills() {
                 placeholder="e.g., Component Development"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <Label htmlFor="isactive">Active</Label>
               <Switch
@@ -364,7 +387,7 @@ export default function Skills() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
@@ -404,12 +427,12 @@ export default function Skills() {
               {editingSubskill ? 'Edit Sub-skill' : 'Add Sub-skill'}
             </DialogTitle>
             <DialogDescription>
-              {editingSubskill 
+              {editingSubskill
                 ? 'Update the sub-skill details below.'
                 : 'Fill in the details to add a new sub-skill.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="subskill-title">Title *</Label>
@@ -420,7 +443,7 @@ export default function Skills() {
                 placeholder="e.g., React Hooks"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <Label htmlFor="subskill-active">Active</Label>
               <Switch
@@ -430,7 +453,7 @@ export default function Skills() {
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setSubskillDialogOpen(false)}>
               Cancel
