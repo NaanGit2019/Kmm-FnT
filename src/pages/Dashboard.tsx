@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/Header';
 import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Cpu, Layers, Users, Award, TrendingUp, Activity } from 'lucide-react';
-import { useTechnology, useTechnologySkills, useTechnologyProfiles, useSkills, useProfiles, useGrades } from '@/hooks/useApi';
+import { useTechnology, useTechnologySkills, useTechnologyProfiles, useSkills, useProfiles, useGrades, useTechnologyTypes } from '@/hooks/useApi';
 import {
   BarChart,
   Bar,
@@ -38,7 +38,7 @@ export default function Dashboard() {
   const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
   const { data: grades = [], isLoading: gradesLoading } = useGrades();
 
-  const isLoading = techLoading || techSkillsLoading || techProfilesLoading || skillsLoading || profilesLoading || gradesLoading;
+    const isLoading = techLoading || techSkillsLoading || typesLoading || techProfilesLoading || skillsLoading || profilesLoading || gradesLoading;
 
   const mostUsedTechnology = useMemo(() => {
     const countByTech = new Map<number, number>();
@@ -66,7 +66,6 @@ export default function Dashboard() {
     const technology = technologies.find((t) => t.id === topTechId);
     return { technology, count: topCount };
   }, [technologySkills, technologyProfiles, technologies]);
-  const isLoading = techLoading || typesLoading || skillsLoading || profilesLoading || gradesLoading;
 
   const technologyTypeData = useMemo(() => {
     return technologyTypes.map((typeObj: { id: number; name: string } | string) => {
