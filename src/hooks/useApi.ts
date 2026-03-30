@@ -6,6 +6,7 @@ import {
     skillApi,
     subskillApi,
     userApi,
+    employeeApi,
     skillMapApi,
     technologySkillApi,
     technologyProfileApi,
@@ -39,6 +40,7 @@ export const queryKeys = {
     technologyProfiles: ['technologyProfiles'] as const,
     technologyProfilesbyprofileid: ['technologyProfilesbyprofileid'] as const,
     profileUsers: ['profileUsers'] as const,
+    employees: ['employees'] as const,
     matrix: ['matrix'] as const,
 };
 
@@ -240,6 +242,17 @@ export function useUsers() {
     return useQuery({
         queryKey: queryKeys.users,
         queryFn: userApi.getAll,
+    });
+}
+
+// Employee Hooks
+export function useEmployees() {
+    return useQuery({
+        queryKey: queryKeys.employees,
+        queryFn: employeeApi.getAll,
+        select: (data) => Array.isArray(data) ? data : [],
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 }
 

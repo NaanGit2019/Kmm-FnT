@@ -15,7 +15,7 @@ import {
   useSkills,
   useSubskills,
   useProfiles,
-  useUsers,
+  useEmployees,
   useTechnology,
   useSkillMaps,
   useProfileUsers,
@@ -53,7 +53,7 @@ export default function EmployeeGrades() {
   const { data: skills = [], isLoading: skillsLoading } = useSkills();
   const { data: subskills = [], isLoading: subskillsLoading } = useSubskills();
   const { data: profiles = [], isLoading: profilesLoading } = useProfiles();
-  const { data: users = [], isLoading: usersLoading } = useUsers();
+  const { data: users = [], isLoading: usersLoading } = useEmployees();
   const { data: skillMaps = [], isLoading: skillMapsLoading } = useSkillMaps();
   const { data: profileUsers = [], isLoading: profileUsersLoading } = useProfileUsers();
   console.log("aa", profileUsers)
@@ -162,10 +162,8 @@ export default function EmployeeGrades() {
     if (pendingChanges.has(subskillId)) {
       return pendingChanges.get(subskillId) || 0;
     }
-    //console.log(pendingChanges)
     const mapping = userSkillMaps.find(sm => sm.subskillId === subskillId);
-    //console.log(mapping)
-    return mapping?.gradeId || 0;
+    return mapping?.gradeid || 0;
   };
   console.log(userSkillMaps)
   const skillsWithGrades = useMemo(() => {

@@ -1,5 +1,6 @@
 // API Configuration - Update this to match your .NET backend URL
 export const API_BASE_URL = import.meta.env.VITE_APP_API_URL || 'https://localhost:44320/api';
+export const PAYROLL_EMPLOYEE_LIST_URL = import.meta.env.VITE_APP_PAYROLL_EMPLOYEE_LIST_URL || 'https://ngo-dev-api.saldobooks.com/payroll/get/employee/list?b=9e9d998c-803c-43c1-a419-cac8bc40d456';
 
 export const API_ENDPOINTS = {
   // Grades
@@ -50,6 +51,11 @@ export const API_ENDPOINTS = {
     getById: (id: number) => `${API_BASE_URL}/Users/GetUserbyId/${id}`,
     insertUpdate: `${API_BASE_URL}/Users/InsertUpdateUser`,
     delete: (id: number) => `${API_BASE_URL}/User/deleteUser/${id}`,
+  },
+
+  // Employees (Payroll service)
+  employees: {
+    getAll: PAYROLL_EMPLOYEE_LIST_URL,
   },
 
 

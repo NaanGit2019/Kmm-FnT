@@ -119,6 +119,54 @@ export const userApi = {
     delete: (id: number) => apiClient.delete(API_ENDPOINTS.users.delete(id)).then(res => res.data),
 };
 
+// Employee API (Payroll employee list)
+export const employeeApi = {
+    getAll: () => apiClient.get(API_ENDPOINTS.employees.getAll).then(res => {
+        const raw = res.data as any;
+        let rows: any[] = [];
+
+        if (Array.isArray(raw)) {
+            rows = raw;
+        } else if (Array.isArray(raw?.data)) {
+            rows = raw.data;
+        } else if (Array.isArray(raw?.result)) {
+            rows = raw.result;
+        } else if (Array.isArray(raw?.employees)) {
+            rows = raw.employees;
+        }
+
+        return rows.map((item) => {
+            // Derive name from common employee fields
+            const candidateNames = [
+                item.name,
+                item.employeeName,
+                item.employee_name,
+                item.emp_name,
+                item.fullName,
+                item.full_name,
+                item.firstName,
+                item.firstname,
+                item.first_name
+            ].filter(v => !!v);
+
+            const firstName = item.lastName || item.lastname || item.last_name;
+            const firstFullName = candidateNames.join(' ').trim();
+            const fullName = firstFullName ||
+                ((item.firstName || item.firstname || item.first_name || '') + ' ' + (firstName || '')).trim();
+
+            const email = item.email || item.emailId || item.workEmail || '';
+
+            return {
+                id: Number(item.id ?? item.employeeId ?? item.userId ?? item.USER_ID ?? 0),
+                name: fullName || '',
+                email,
+                department: item.department || item.dept || item.departmentName || '',
+                isactive: typeof item.isactive !== 'undefined' ? item.isactive : (typeof item.active === 'boolean' ? item.active : true),
+            } as User;
+        });
+    }),
+};
+
 // Skill Map API
 export const skillMapApi = {
     getAll: () => apiClient.get<MapSkillmap[]>(API_ENDPOINTS.skillMaps.getAll).then(res => res.data),

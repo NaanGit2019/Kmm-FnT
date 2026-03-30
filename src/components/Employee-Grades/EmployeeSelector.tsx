@@ -24,11 +24,12 @@ export function EmployeeSelector({ users, selectedUserId, onUserChange }: Employ
                         <SelectValue placeholder="Select an employee" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border z-50">
-                        {users.filter(u => u.isactive).map(user => (
+                        {users.filter(u => u.isactive ?? true).map(user => (
                             <SelectItem key={user.id} value={user.id.toString()}>
                                 <div className="flex items-center gap-2">
                                     <User className="w-4 h-4" />
-                                    {user.name} - {user.department}
+                                    {(user.name && user.name !== 'unknown@example.com') ? user.name : (user.email ? user.email : `Employee ${user.id}`)}
+                                    {user.department ? ` - ${user.department}` : ''}
                                 </div>
                             </SelectItem>
                         ))}

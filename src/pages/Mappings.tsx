@@ -20,6 +20,7 @@ import {
   useTechnology,
   useSkills,
   useUsers,
+  useEmployees,
   useTechnologyProfiles,
   useTechnologySkills,
   useProfileUsers,
@@ -41,6 +42,7 @@ export default function Mappings() {
   const { data: technologiesData, isLoading: technologiesLoading } = useTechnology();
   const { data: skillsData, isLoading: skillsLoading } = useSkills();
   const { data: usersData, isLoading: usersLoading } = useUsers();
+  const { data: employeesData, isLoading: employeesLoading } = useEmployees();
   const { data: techProfilesData, isLoading: techProfilesLoading } = useTechnologyProfiles();
   const { data: techSkillsData, isLoading: techSkillsLoading } = useTechnologySkills();
   const { data: profileUsersData, isLoading: profileUsersLoading } = useProfileUsers();
@@ -49,9 +51,19 @@ export default function Mappings() {
   const technologies = useMemo(() => technologiesData ?? [], [technologiesData]);
   const skills = useMemo(() => skillsData ?? [], [skillsData]);
   const users = useMemo(() => usersData ?? [], [usersData]);
+  const employees = useMemo(() => employeesData ?? [], [employeesData]);
   const techProfiles = useMemo(() => techProfilesData ?? [], [techProfilesData]);
   const techSkills = useMemo(() => techSkillsData ?? [], [techSkillsData]);
   const profileUsers = useMemo(() => profileUsersData ?? [], [profileUsersData]);
+
+  const mappedEmployeeIds = useMemo(() => {
+    return new Set(profileUsers.filter(pu => pu.isactive).map(pu => pu.userId));
+  }, [profileUsers]);
+
+  const mappedEmployees = useMemo(() => {
+    if (mappedEmployeeIds.size === 0) return [];
+    return employees.filter(e => mappedEmployeeIds.has(e.id));
+  }, [employees, mappedEmployeeIds]);
 
   const { insertUpdate: insertTechProfile, deleteMutation: deleteTechProfile } = useTechnologyProfileMutation();
   const { insertUpdate: insertTechSkill, deleteMutation: deleteTechSkill } = useTechnologySkillMutation();
@@ -83,6 +95,7 @@ export default function Mappings() {
   const getProfile = (id: number) => profiles.find(p => p.id === id);
   const getSkill = (id: number) => skills.find(s => s.id === id);
   const getUser = (id: number) => users.find(u => u.id === id);
+  const getEmployee = (id: number) => employees.find(e => e.id === id);
 
   // Technology-Profile handlers
   const handleAddTechProfile = () => {
@@ -451,7 +464,7 @@ export default function Mappings() {
                     const profile = getProfile(pu.profileId);
                     return (
                       <TableRow key={pu.id}>
-                        <TableCell className="font-medium">{user?.name}</TableCell>
+                        <TableCell className="font-medium">{getEmployee(pu.userId)?.name || user?.name}</TableCell>
                         {/* <TableCell className="text-muted-foreground">{user?.email}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{user?.department}</Badge>
@@ -635,6 +648,26 @@ export default function Mappings() {
       </Dialog>
 
       {/* Profile-User Dialog */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Mapped Profile Users</CardTitle>
+          <CardDescription>
+            These employees are mapped to profiles and will appear in the Employee dropdown in Employee Grades.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {mappedEmployees.length > 0 ? (
+            <ul className="list-disc list-inside space-y-1">
+              {mappedEmployees.map(employee => (
+                <li key={employee.id}>{employee.name || employee.email || `Employee ${employee.id}`}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground">No mapped employees yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
       <Dialog
         open={showProfileUserDialog}
         onOpenChange={(open) => {
@@ -660,9 +693,9 @@ export default function Mappings() {
                   <SelectValue placeholder="Select employee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {users.filter(u => u.isactive).map(user => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      {user.name} ({user.department})
+                  {employees.filter(e => e.isactive ?? true).map(employee => (
+                    <SelectItem key={employee.id} value={employee.id.toString()}>
+                      {employee.name || employee.email || `Employee ${employee.id}`} ({employee.department})
                     </SelectItem>
                   ))}
                 </SelectContent>

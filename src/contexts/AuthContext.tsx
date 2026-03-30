@@ -103,12 +103,14 @@ export const AuthProvider = ({ children }: { children: React.ReactElement }) => 
                 }
             } catch (err) {
                 console.error('Session initialization error:', err);
-                dispatch({ 
+                dispatch({
                     type: LOGOUT,
                     payload: {
                         isLoggedIn: false,
                         user: null,
-                        isInitialized: true  }});
+                        isInitialized: true
+                    }
+                });
             }
         };
 
@@ -117,7 +119,14 @@ export const AuthProvider = ({ children }: { children: React.ReactElement }) => 
 
     useEffect(() => {
         if (state.user) {
-            getUserModules();
+            const currentPath = window.location.pathname.toLowerCase();
+            const skipModuleFetch = currentPath.includes('/employeegrades') || currentPath.includes('/employee-grades');
+
+            // Only fetch auth modules for routes that need module-based access control.
+            // Employee Grades page should use payroll endpoint, not this auth module endpoint.
+            if (!skipModuleFetch) {
+                getUserModules();
+            }
         }
         return () => { };
     }, [state.user]);
